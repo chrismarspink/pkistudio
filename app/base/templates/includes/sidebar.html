@@ -37,7 +37,7 @@
 						</div>
 					</div>
 					<ul class="nav nav-primary">
-						<li class="nav-item {% if 'index' in segment %} active {% endif %}">
+						<!--li class="nav-item {% if 'index' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
 								<i class="fas fa-home"></i>
 								<p>Dashboard</p>
@@ -52,12 +52,215 @@
 									</li>
 								</ul>
 							</div>
-						</li>
+						</li-->
 						<li class="nav-section">
 							<span class="sidebar-mini-icon">
 								<i class="fa fa-ellipsis-h"></i>
 							</span>
 							<h4 class="text-section">PKI TOOLS</h4>
+						</li>
+						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#analysers">
+								<i class="fas fa-layer-group"></i>
+								<p>Analyzers</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="analysers">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/ui-pemparser.html">
+											<span class="sub-item">PEM</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">ASN.1</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<!-- DER Certificate, Req, Key,,, as File -->
+											<span class="sub-item">DER</span>
+										</a>
+									</li>
+
+								</ul>
+							</div>
+						</li>
+
+
+						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#cipher">
+								<i class="fas fa-pen-square"></i>
+								<p>Encrypt/Decrypt</p>
+								<span class="caret"></span>
+							</a>
+
+							<div class="collapse" id="cipher">
+								<ul class="nav nav-collapse">
+									
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">En/Decrypt</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Elliptic Curve</span>
+										</a>
+									</li>
+									
+								</ul>
+							</div>
+						</li>
+
+						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#sign">
+								<i class="fas fa-pen-square"></i>
+								<p>Sign/Verify</p>
+								<span class="caret"></span>
+							</a>
+												
+							<div class="collapse" id="sign">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/ui-pemparser.html">
+											<span class="sub-item">RSA Sign/Verify</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-pemparser.html">
+											<span class="sub-item">EC Sign/Verify</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">HMAC</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Private Key</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">CSR</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Others...</span>
+										</a>
+									</li>
+									
+								</ul>
+							</div>
+						</li>
+
+						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#generation">
+								<i class="fas fa-pen-square"></i>
+								<p>Generators</p>
+								<span class="caret"></span>
+							</a>
+												
+							<div class="collapse" id="generation">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/ui-pemparser.html">
+											<span class="sub-item">Message Digest</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">HMAC</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Private Key</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">CSR</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Others...</span>
+										</a>
+									</li>
+									
+								</ul>
+							</div>
+						</li>
+
+
+						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#pkix">
+								<i class="fas fa-bars"></i>
+								<p>PKIX</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="pkix">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/ui-pemparser.html">
+											<span class="sub-item">Generate Key Pair</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Certificate Self-signed Certificate</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Generate CA Certifiate</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Verify Private Key</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Extract Public Key</span>
+										</a>
+									</li>
+									
+								</ul>
+							</div>
+						</li>
+
+
+
+
+						<li class="nav-section">
+							<span class="sidebar-mini-icon">
+								<i class="fa fa-ellipsis-h"></i>
+							</span>
+							<h4 class="text-section">Widget List</h4>
 						</li>
 						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#base">
@@ -67,6 +270,8 @@
 							</a>
 							<div class="collapse" id="base">
 								<ul class="nav nav-collapse">
+									
+									
 									<li>
 										<a href="/ui-avatars.html">
 											<span class="sub-item">Avatars</span>
@@ -117,42 +322,7 @@
 											<span class="sub-item">Typography</span>
 										</a>
 									</li>
-								</ul>
-							</div>
-						</li>
-						<li class="nav-item {% if 'layout' in segment %} active {% endif %}">
-							<a data-toggle="collapse" href="#sidebarLayouts">
-								<i class="fas fa-th-list"></i>
-								<p>Sidebar Layouts</p>
-								<span class="caret"></span>
-							</a>
-							<div class="collapse" id="sidebarLayouts">
-								<ul class="nav nav-collapse">
-									<li>
-										<a href="/layout-sidebar-style-1.html">
-											<span class="sub-item">Sidebar Style 1</span>
-										</a>
-									</li>
-									<li>
-										<a href="/layout-overlay-sidebar.html">
-											<span class="sub-item">Overlay Sidebar</span>
-										</a>
-									</li>
-									<li>
-										<a href="/layout-compact-sidebar.html">
-											<span class="sub-item">Compact Sidebar</span>
-										</a>
-									</li>
-									<li>
-										<a href="/layout-static-sidebar.html">
-											<span class="sub-item">Static Sidebar</span>
-										</a>
-									</li>
-									<li>
-										<a href="/layout-icon-menu.html">
-											<span class="sub-item">Icon Menu</span>
-										</a>
-									</li>
+							
 								</ul>
 							</div>
 						</li>
@@ -193,7 +363,7 @@
 								</ul>
 							</div>
 						</li>
-						<li class="nav-item {% if 'maps' in segment %} active {% endif %}">
+						<!--li class="nav-item {% if 'maps' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#maps">
 								<i class="fas fa-map-marker-alt"></i>
 								<p>Maps</p>
@@ -208,8 +378,8 @@
 									</li>
 								</ul>
 							</div>
-						</li>
-						<li class="nav-item {% if 'charts' in segment %} active {% endif %}">
+						</li-->
+						<!--li class="nav-item {% if 'charts' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#charts">
 								<i class="far fa-chart-bar"></i>
 								<p>Charts</p>
@@ -229,7 +399,7 @@
 									</li>
 								</ul>
 							</div>
-						</li>
+						</li-->
 						<li class="nav-item {% if 'widgets' in segment %} active {% endif %}">
 							<a href="/widgets.html">
 								<i class="fas fa-desktop"></i>
@@ -288,12 +458,12 @@
 								</ul>
 							</div>
 						</li>
-						<li class="mx-4 mt-2">
+						<!--li class="mx-4 mt-2">
                             <a target="_blank"
                                href="https://appseed.us/admin-dashboards/flask-dashboard-atlantis-dark-pro" 
                                class="btn btn-danger btn-block">
                                 <span class="btn-label mr-2"> <i class="fa fa-rocket"></i> </span>remote PRO Version</a> 
-						</li>
+						</li-->
 					</ul>
 				{% else %}
 					<ul class="nav nav-primary">
