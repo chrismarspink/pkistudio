@@ -19,6 +19,35 @@ from app.base.models import User
 
 from app.base.util import verify_pass
 
+
+########## Crypto Module
+from OpenSSL import crypto, SSL
+from socket import gethostname
+from pprint import pprint
+from time import gmtime, mktime
+from os.path import exists, join
+
+from datetime import datetime, timedelta
+import subprocess
+
+import base64
+
+from OpenSSL._util import (ffi as _ffi, lib as _lib)
+
+def do_openssl(pem, *args):
+    """
+    Run the command line openssl tool with the given arguments and write
+    the given PEM to its stdin.  Not safe for quotes.
+    """
+    proc = subprocess.Popen([b"openssl"] + list(args), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    proc.stdin.write(pem)
+    proc.stdin.close()
+    output = proc.stdout.read()
+    proc.stdout.close()
+    proc.wait()
+    return output
+##########
+
 @blueprint.route('/')
 def route_default():
     return redirect(url_for('base_blueprint.login'))
@@ -91,6 +120,32 @@ def register():
     else:
         flash(' just show it ... ')      
         return render_template( 'accounts/register.html', form=create_account_form)
+
+@blueprint.route('/analyzer-pem.html', methods=['GET', 'POST'])
+def analyzerpem():
+
+    cert_pem="""-----BEGIN CERTIFICATE-----
+MIICIjCCAYsCAgPoMA0GCSqGSIb3DQEBBQUAMFkxCzAJBgNVBAYTAktSMQ8wDQYD
+VQQKDAZFUm1pbmQxFjAUBgNVBAsMDVdlYiBJc29sYXRpb24xITAfBgNVBAMMGGpr
+a2ltdWktTWFjQm9va1Byby5sb2NhbDAeFw0yMTExMjYwODA2MjJaFw0zMTExMjQw
+ODA2MjJaMFkxCzAJBgNVBAYTAktSMQ8wDQYDVQQKDAZFUm1pbmQxFjAUBgNVBAsM
+DVdlYiBJc29sYXRpb24xITAfBgNVBAMMGGpra2ltdWktTWFjQm9va1Byby5sb2Nh
+bDCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAunuyXMXefQzCKxBSzYFOwNKC
+2IMfxPLcX8dAXR092mQewsKEonHyc66deUC6Nrpn3CAyHSOVKv1mD/PL3UDxCF3b
+ptfvDiVlXUklxS0+++KM7Fa8MA1/FdfreO5ArZezJw3y0WtUv5BrOAnhkPe/YF4Q
+M2rNTj5xIVuacjkC6f8CAwEAATANBgkqhkiG9w0BAQUFAAOBgQB7xoYasTRMd2SP
+uUAuOJsAy7+jFGKQMpprrZqBQTGjdVchCocxRfCJYknevTQeq+knTJhkhy9BH1F7
+T3MO4n9jdTs+CzLqUn4PXN3EO6nI4MqZ3o9EHyW2kpd9UpGiZmv9nSH247INA0ss
+IsS+BdFLnH/bvGz61jTF8cYLqC/YdA==
+-----END CERTIFICATE-----
+"""
+
+    #output = do_openssl(cert_pem, b"x509", b"-text", b"-noout")
+    #cert_pem_parsed = output
+
+    flash(' just show it ... ')      
+    result=cert_pem
+    return render_template( '/analyzer-pem.html', result=result)
 
 @blueprint.route('/logout')
 def logout():

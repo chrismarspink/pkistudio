@@ -1,0 +1,129 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} HMAC {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">HMAC</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Generator</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">HMAC</a>
+					</li>
+				</ul>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Input Text</h4>
+							
+						</div>
+						<div class="card-body">
+							<div class="form-group">
+								<div class="form-group">
+									<label for="defaultSelect">HMAC Algorithm </label>
+			
+									<select class="form-control form-control" id="defaultSelect">
+										<option>blake2b512</option>
+										<option>blake2s256</option>
+										<option>md4</option>
+										<option>md5-sha1</option>
+										<option>mdc2</option>
+										<option>ripemd</option>
+										<option>ripemd160</option>
+										<option>rmd160</option>
+										<option>sha1</option>
+										<option>sha224</option>
+										<option>sha256</option>
+										<option>sha3-224</option>
+										<option>sha3-384</option>
+										<option>sha3-256</option>
+										<option>sha3-512</option>
+										<option>sha384</option>
+										<option>sha512</option>
+										<option>sha512-224</option>
+										<option>sha512-256</option>
+										<option>shake128</option>
+										<option>shake256</option>
+										<option>sm3</option>
+										<option>ssl3-md5</option>
+										<option>ssl3-sha1 </option>
+										<option>whirlpool</option>
+									</select>
+								</div>
+
+								<div class="form-group">
+								    <textarea class="form-control" id="pem-data" rows="10"></textarea>
+							    </div>
+
+								<div class="form-group">
+									<label for="password">Secret Keyß</label>
+									<input type="password" class="form-control" id="password" placeholder="Password">
+								</div>
+
+								<div class="form-group">
+									<p class="demo">
+										<button class="btn btn-primary"><span class="btn-label"><i class="fa fa-check"></i></span>
+											Generate HMAC
+										</button>
+		    							<button class="btn btn-secondary"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
+											Clear
+										</button>
+									</p>
+								</div>
+
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Computed HMAC</h4>
+							
+						</div>
+						<div class="card-body">
+							<p class="demo">
+								<div class="form-group">
+								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}{% endautoescape %}
+									</textarea>
+							    </div>
+							</p>
+						</div>
+					</div>
+				</div>
+				
+				
+			</div>
+		</div>
+	</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+
+{% endblock javascripts %}

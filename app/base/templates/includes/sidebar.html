@@ -57,32 +57,38 @@
 							<span class="sidebar-mini-icon">
 								<i class="fa fa-ellipsis-h"></i>
 							</span>
-							<h4 class="text-section">PKI TOOLS</h4>
+							<h4 class="text-section">Cryptography Services</h4>
 						</li>
-						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
-							<a data-toggle="collapse" href="#analysers">
+						<li class="nav-item {% if 'analyzer-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#analyzer">
 								<i class="fas fa-layer-group"></i>
 								<p>Analyzers</p>
 								<span class="caret"></span>
 							</a>
-							<div class="collapse" id="analysers">
+							<div class="collapse" id="analyzer">
 								<ul class="nav nav-collapse">
 									<li>
-										<a href="/ui-pemparser.html">
+										<a href="/analyzer-pem.html">
 											<span class="sub-item">PEM</span>
 										</a>
 									</li>
 
 									<li>
-										<a href="/ui-avatars.html">
+										<a href="/analyzer-asn1.html">
 											<span class="sub-item">ASN.1</span>
 										</a>
 									</li>
 
-									<li>
-										<a href="/ui-avatars.html">
-											<!-- DER Certificate, Req, Key,,, as File -->
+									<!--li>
+										<a href="/analyzer-der.html">
 											<span class="sub-item">DER</span>
+										</a>
+									</li-->
+
+									<li>
+										<a href="/analyzer-pkcs12.html">
+											<!-- PKCS12 to Cert/Key/CACert Text and File -->
+											<span class="sub-item">PKCS12</span>
 										</a>
 									</li>
 
@@ -91,7 +97,7 @@
 						</li>
 
 
-						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+						<li class="nav-item {% if 'cipher-' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#cipher">
 								<i class="fas fa-pen-square"></i>
 								<p>Encrypt/Decrypt</p>
@@ -103,13 +109,13 @@
 									
 
 									<li>
-										<a href="/ui-avatars.html">
-											<span class="sub-item">En/Decrypt</span>
+										<a href="/cipher-encrypt.html">
+											<span class="sub-item">Encrypt/Decrypt</span>
 										</a>
 									</li>
 
 									<li>
-										<a href="/ui-avatars.html">
+										<a href="/cipher-ecc_encrypt.html">
 											<span class="sub-item">Elliptic Curve</span>
 										</a>
 									</li>
@@ -118,9 +124,9 @@
 							</div>
 						</li>
 
-						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+						<li class="nav-item {% if 'sign-' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#sign">
-								<i class="fas fa-pen-square"></i>
+								<i class="fas fa-feather-alt"></i>
 								<p>Sign/Verify</p>
 								<span class="caret"></span>
 							</a>
@@ -128,38 +134,14 @@
 							<div class="collapse" id="sign">
 								<ul class="nav nav-collapse">
 									<li>
-										<a href="/ui-pemparser.html">
+										<a href="/sign-rsa.html">
 											<span class="sub-item">RSA Sign/Verify</span>
 										</a>
 									</li>
 
 									<li>
-										<a href="/ui-pemparser.html">
+										<a href="/sign-ecc.html">
 											<span class="sub-item">EC Sign/Verify</span>
-										</a>
-									</li>
-
-									<li>
-										<a href="/ui-avatars.html">
-											<span class="sub-item">HMAC</span>
-										</a>
-									</li>
-
-									<li>
-										<a href="/ui-avatars.html">
-											<span class="sub-item">Private Key</span>
-										</a>
-									</li>
-
-									<li>
-										<a href="/ui-avatars.html">
-											<span class="sub-item">CSR</span>
-										</a>
-									</li>
-
-									<li>
-										<a href="/ui-avatars.html">
-											<span class="sub-item">Others...</span>
 										</a>
 									</li>
 									
@@ -167,41 +149,41 @@
 							</div>
 						</li>
 
-						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
-							<a data-toggle="collapse" href="#generation">
+						<li class="nav-item {% if 'generator-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#generator">
 								<i class="fas fa-pen-square"></i>
 								<p>Generators</p>
 								<span class="caret"></span>
 							</a>
 												
-							<div class="collapse" id="generation">
+							<div class="collapse" id="generator">
 								<ul class="nav nav-collapse">
 									<li>
-										<a href="/ui-pemparser.html">
+										<a href="/generator-digest.html">
 											<span class="sub-item">Message Digest</span>
 										</a>
 									</li>
 
 									<li>
-										<a href="/ui-avatars.html">
+										<a href="/generator-hmac.html">
 											<span class="sub-item">HMAC</span>
 										</a>
 									</li>
 
 									<li>
-										<a href="/ui-avatars.html">
+										<a href="/generator-privatekey.html">
 											<span class="sub-item">Private Key</span>
 										</a>
 									</li>
 
 									<li>
-										<a href="/ui-avatars.html">
+										<a href="/generator-csr.html">
 											<span class="sub-item">CSR</span>
 										</a>
 									</li>
 
 									<li>
-										<a href="/ui-avatars.html">
+										<a href="/generate-others.html">
 											<span class="sub-item">Others...</span>
 										</a>
 									</li>
@@ -211,7 +193,7 @@
 						</li>
 
 
-						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+						<li class="nav-item {% if 'pkix-' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#pkix">
 								<i class="fas fa-bars"></i>
 								<p>PKIX</p>
@@ -220,13 +202,13 @@
 							<div class="collapse" id="pkix">
 								<ul class="nav nav-collapse">
 									<li>
-										<a href="/ui-pemparser.html">
+										<a href="/pkix-generate_keypair.html">
 											<span class="sub-item">Generate Key Pair</span>
 										</a>
 									</li>
 
 									<li>
-										<a href="/ui-avatars.html">
+										<a href="/pkix-generate_ss_cert.html">
 											<span class="sub-item">Certificate Self-signed Certificate</span>
 										</a>
 									</li>
@@ -260,7 +242,7 @@
 							<span class="sidebar-mini-icon">
 								<i class="fa fa-ellipsis-h"></i>
 							</span>
-							<h4 class="text-section">Widget List</h4>
+							<h4 class="text-section">PKIZIP</h4>
 						</li>
 						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#base">
@@ -270,7 +252,6 @@
 							</a>
 							<div class="collapse" id="base">
 								<ul class="nav nav-collapse">
-									
 									
 									<li>
 										<a href="/ui-avatars.html">
@@ -326,6 +307,7 @@
 								</ul>
 							</div>
 						</li>
+
 						<li class="nav-item {% if 'form' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#forms">
 								<i class="fas fa-pen-square"></i>
@@ -342,6 +324,7 @@
 								</ul>
 							</div>
 						</li>
+
 						<li class="nav-item {% if 'tables' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#tables">
 								<i class="fas fa-table"></i>
@@ -363,7 +346,7 @@
 								</ul>
 							</div>
 						</li>
-						<!--li class="nav-item {% if 'maps' in segment %} active {% endif %}">
+						<li class="nav-item {% if 'maps' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#maps">
 								<i class="fas fa-map-marker-alt"></i>
 								<p>Maps</p>
@@ -378,8 +361,8 @@
 									</li>
 								</ul>
 							</div>
-						</li-->
-						<!--li class="nav-item {% if 'charts' in segment %} active {% endif %}">
+						</li>
+						<li class="nav-item {% if 'charts' in segment %} active {% endif %}">
 							<a data-toggle="collapse" href="#charts">
 								<i class="far fa-chart-bar"></i>
 								<p>Charts</p>
@@ -399,7 +382,7 @@
 									</li>
 								</ul>
 							</div>
-						</li-->
+						</li>
 						<li class="nav-item {% if 'widgets' in segment %} active {% endif %}">
 							<a href="/widgets.html">
 								<i class="fas fa-desktop"></i>
