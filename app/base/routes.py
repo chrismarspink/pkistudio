@@ -122,7 +122,7 @@ def register():
         return render_template( 'accounts/register.html', form=create_account_form)
 
 @blueprint.route('/analyzer-pem.html', methods=['GET', 'POST'])
-def analyzerpem():
+def analyzer_pem():
 
     cert_pem="""-----BEGIN CERTIFICATE-----
 MIICIjCCAYsCAgPoMA0GCSqGSIb3DQEBBQUAMFkxCzAJBgNVBAYTAktSMQ8wDQYD
@@ -146,6 +146,32 @@ IsS+BdFLnH/bvGz61jTF8cYLqC/YdA==
     flash(' just show it ... ')      
     result=cert_pem
     return render_template( '/analyzer-pem.html', result=result)
+
+
+@blueprint.route('/generator-privatekey.html', methods=['GET', 'POST'])
+def generator_privatekey():
+
+    algorithm_name="RSA"
+    #alg="no algorithm selected..."
+        
+    if request.method == 'POST':
+
+        name = request.form.get('alg')
+
+        if name == "RSA":
+            algorithm_name="ECDSA"
+        if name == "ECCDSA":
+            algorithm_name="RSA"
+
+        key = crypto.PKey()
+        key.generate_key(crypto.TYPE_RSA, 1024)
+        priv_key = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
+        message=priv_key.decode('utf-8')
+        alg=name
+        return render_template( '/generator-privatekey.html', alg=alg, algorithm_name=algorithm_name, message=message)
+    message="GET"
+    flash(' just show it ... ')      
+    return render_template( '/generator-privatekey.html', alg=alg, algorithm_name=algorithm_name, message=message)
 
 @blueprint.route('/logout')
 def logout():

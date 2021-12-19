@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} HMAC {% endblock %} 
+{% block title %} Private Key {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -10,7 +10,7 @@
 	<div class="content">
 		<div class="page-inner">
 			<div class="page-header">
-				<h4 class="page-title">HMAC</h4>
+				<h4 class="page-title">Private Key</h4>
 				<ul class="breadcrumbs">
 					<li class="nav-home">
 						<a href="#">
@@ -27,98 +27,182 @@
 						<i class="flaticon-right-arrow"></i>
 					</li>
 					<li class="nav-item">
-						<a href="#">HMAC</a>
+						<a href="#">Private Key</a>
 					</li>
 				</ul>
 			</div>
+
 			<div class="row">
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">Input Text</h4>
-							
+							<h4 class="card-title">Generate Private Key</h4>
 						</div>
+
 						<div class="card-body">
+						<form method="post" action="">
+
 							<div class="form-group">
 								<div class="form-group">
-									<label for="defaultSelect">HMAC Algorithm </label>
-			
+		
+									<!--label class="form-label">Algorithm</label>
+											
+									<div class="selectgroup w-100">
+												<button class="btn btn-primary btn-border btn-round btn-sm" type="submit" name="alg" value="{{algorithm_name}}"><span class="btn-label"><i class="flaticon-repeat"></i></span>
+													{{algorithm_name}}
+												</button>
+									</div-->
+
+								
+									<label for="defaultSelect">Private Key Algorithm/Parameter </label>
+
 									<select class="form-control form-control" id="defaultSelect">
-										<option>blake2b512</option>
-										<option>blake2s256</option>
-										<option>md4</option>
-										<option>md5-sha1</option>
-										<option>mdc2</option>
-										<option>ripemd</option>
-										<option>ripemd160</option>
-										<option>rmd160</option>
-										<option>sha1</option>
-										<option>sha224</option>
-										<option>sha256</option>
+										{% if  algorithm_name == 'RSA'  %}
+										
+									
+										<option>1024 bits</option>
+										<option>2048 bits</option>
+										<option>3192 bits</option>
+										<option>4096 bits</option>
+										<option>8192 bits</option>
+										<option>16384 bits</option>
+										{% else %}	
+										<option>secp112r1</option>
+										<option>secp112r2</option>
+										<option>secp128r1</option>
+										<option>secp128r2</option>
+										<option>secp160k1</option>
+										<option>secp160r1</option>
+										<option>secp160r2</option>
+										<option>secp192k1</option>
+										<option>secp224k1</option>
+										<option>secp224r1</option>
+										<option>secp256k1</option>
+										<option>secp384r1</option>
+										<option>secp521r1</option>
 
-										<option>sha3-224</option>
-										<option>sha3-384</option>
-										<option>sha3-256</option>
-										<option>sha3-512</option>
-										<option>sha384</option>
-										<option>sha512</option>
-										<option>sha512-224</option>
-										<option>sha512-256</option>
-										<option>shake128</option>
-										<option>shake256</option>
-										<option>sm3</option>
+										<option>prime192v1</option>
+										<option>prime192v2</option>
+										<option>prime192v3</option>
+										<option>prime239v1</option>
+										<option>prime239v2</option>
+										<option>prime239v3</option>
+										<option>prime256v1</option>
+										<option>sect113r1</option>
+										<option>sect113r2</option>
+										<option>sect131r1</option>
+										<option>sect131r2</option>
+										<option>sect163k1</option>
+										<option>sect163r1</option>
+										<option>sect163r2</option>
+										<option>sect193r1</option>
+										<option>sect193r2</option>
+										<option>sect233k1</option>
+										<option>sect233r1</option>
+										<option>sect239k1</option>
+										<option>sect283k1</option>
+										<option>sect283r1</option>
+										<option>sect409k1</option>
+										<option>sect409r1</option>
+										<option>sect571k1</option>
+										<option>c2pnb163v1</option>
+										<option>c2pnb163v2</option>
+										<option>c2pnb163v3</option>
+										<option>c2pnb176v1</option>
+										<option>c2tnb191v1</option>
+										<option>c2tnb191v2</option>
+										
+										<option>c2tnb191v3</option>
+										<option>c2pnb208w1</option>
+										<option>c2tnb239v1</option>
+										<option>c2tnb239v2</option>
+										<option>c2tnb239v3</option>
+										<option>c2pnb272w1</option>
+										<option>c2pnb304w1</option>
+										<option>c2tnb359v1</option>
+										<option>c2pnb368w1</option>
+										<option>c2tnb431r1</option>
+										<option>wap-wsg-idm-ecid-wtls1</option>
+										<option>wap-wsg-idm-ecid-wtls3</option>
+										<option>wap-wsg-idm-ecid-wtls4</option>
+										<option>wap-wsg-idm-ecid-wtls5</option>
+										<option>wap-wsg-idm-ecid-wtls6</option>
+										<option>wap-wsg-idm-ecid-wtls7</option>
+										<option>wap-wsg-idm-ecid-wtls8</option>
+										<option>wap-wsg-idm-ecid-wtls9</option>
+										
+										<option>wap-wsg-idm-ecid-wtls10</option>
+										<option>wap-wsg-idm-ecid-wtls11</option>
+										<option>wap-wsg-idm-ecid-wtls12</option>
+										<option>Oakley-EC2N-3</option>
+										<option>Oakley-EC2N-4</option>
 
-										<option>ssl3-md5</option>
-										<option>ssl3-sha1 </option>
-										<option>whirlpool</option>
+										<option>brainpoolP160r1</option>
+										<option>brainpoolP160t1</option>
+										<option>brainpoolP192r1</option>
+										<option>brainpoolP192t1</option>
+										<option>brainpoolP224r1</option>
+										<option>brainpoolP224t1</option>
+										<option>brainpoolP256r1</option>
+										<option>brainpoolP256t1</option>
+										<option>brainpoolP320r1</option>
+										<option>brainpoolP320t1</option>
+										<option>brainpoolP384r1</option>
+										<option>brainpoolP384t1</option>
+										<option>brainpoolP512r1</option>
+										<option>brainpoolP512t1</option>
+										<option>SM2</option>
+										{% endif %}	
 									</select>
 								</div>
 								<div class="form-group">
-								    <textarea class="form-control" id="pem-data" rows="10"></textarea>
+								    <textarea class="form-control" id="pem-data" rows="10">{{message}}</textarea>
 							    </div>
 
 								<div class="form-group">
-									<label for="password">Input password</label>
+									<!--label for="password">Input password</label-->
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" value="">
+											<span class="form-check-sign">Private key encryption password</span>
+										</label>
+									</div>
 									<input type="password" class="form-control" id="password" placeholder="Password">
 								</div>
 
 								<div class="form-group">
 									<p class="demo">
-											
-										<button class="btn btn-primary"><span class="btn-label"><i class="fa fa-check"></i></span>
-											Generate HMAC
+										<button class="btn btn-primary btn-border btn-round " type="submit" name="alg" value="{{algorithm_name}}"><span class="btn-label"><i class="flaticon-repeat"></i></span>
+											{{algorithm_name}}
+										</button>
+										<button class="btn btn-primary" type='submit' id='genkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+											Generate Private Key
+										</button>
+										<button class="btn btn-primary" type='submit' id='genkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+											CSR
+										</button>
+
+										<button class="btn btn-primary" type='submit' id='genkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+											Self-Signed Certificate
 										</button>
 
 		    							<button class="btn btn-secondary"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
 											Clear
 										</button>
-		
 									</p>
 								</div>
 
 							</div>
+						</form>
+
 						</div>
 					</div>
 				</div>
-				<div class="col-md-12">
-					<div class="card">
-						<div class="card-header">
-							<h4 class="card-title">Computed HMAC</h4>
-							
-						</div>
-						<div class="card-body">
-							<p class="demo">
-								<div class="form-group">
-								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}{% endautoescape %}
-									</textarea>
-							    </div>
-							</p>
-						</div>
-					</div>
-				</div>
+				
 				
 				
 			</div>
+
 		</div>
 	</div>
 

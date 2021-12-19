@@ -100,20 +100,33 @@
 					<div class="card">
 						<div class="card-header">
 							<h4 class="card-title">Computed HMAC</h4>
-							
 						</div>
 						<div class="card-body">
 							<p class="demo">
+								
+								<div class="form-group">
+
+									<label for="defaultSelect">Base64-encoded </label>
+								</div>
+
+								<div class="form-group">
+								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}{% endautoescape %}
+									</textarea>
+							    </div>
+								<div class="form-group">
+
+								<label for="defaultSelect">HEX encoded </label>
+								</div>
+
 								<div class="form-group">
 								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}{% endautoescape %}
 									</textarea>
 							    </div>
 							</p>
-						</div>
+						</div>	
 					</div>
 				</div>
-				
-				
+	
 			</div>
 		</div>
 	</div>
