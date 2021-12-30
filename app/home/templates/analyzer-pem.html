@@ -7,6 +7,7 @@
 
 {% block content %}
 
+
 	<div class="content">
 		<div class="page-inner">
 			<div class="page-header">
@@ -31,6 +32,14 @@
 					</li>
 				</ul>
 			</div>
+
+			{% for message in get_flashed_messages() %}
+ 			<div class="alert alert-warning">
+ 				<button type="button" class="close" data-dismiss="alert">&times;</button>
+ 					{{ message }}
+ 			</div>
+ 			{% endfor %}
+
 			<div class="row">
 				<div class="col-md-12">
 					<div class="card">
@@ -38,14 +47,16 @@
 							<h4 class="card-title">Decode Pem Format Enter the text of your Certificate</h4>
 							
 						</div>
+
 						<div class="card-body">
+							<form method="post" action="">
 							<div class="form-group">
 								<div class="form-group">
 									<label for="defaultSelect">Select Format</label>
-									<select class="form-control form-control" id="defaultSelect">
-										<option>CRL(Certificate Revocation List)</option>
-										<option>CRT(X.509 Certificate)</option>
-										<option>CSR(Certificate Signing Request)</option>
+									<select class="form-control form-control" id="pem_selected" name="pem_type">
+										<option value="crl">CRL(Certificate Revocation List)</option>
+										<option value="crt">CRT(X.509 Certificate)</option>
+										<option value="csr">CSR(Certificate Signing Request)</option>
 										<option>New CSR</option>
 										<option>RSA Private Key</option>
 										<option>PKCS7</option>
@@ -63,18 +74,20 @@
 								<div class="form-group">
 									<p class="demo">
 											
-										<button class="btn btn-primary"><span class="btn-label"><i class="fa fa-check"></i></span>
+										<button class="btn btn-primary" type="submit" name="submit" value="analyze"><span class="btn-label"><i class="fa fa-check"></i></span>
 											Analyze
 										</button>
 
-		    							<button class="btn btn-secondary"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
+		    							<button class="btn btn-secondary" type="submit" name="submit" value="clear"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
 											Clear
 										</button>
 		
 									</p>
 								</div>
 
+							</form>
 							</div>
+
 						</div>
 					</div>
 				</div>
@@ -88,7 +101,7 @@
 							<p class="demo">
 								<div class="form-group">
 								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}
-{% endautoescape %}
+									{% endautoescape %}
 									</textarea>
 							    </div>
 							</p>
