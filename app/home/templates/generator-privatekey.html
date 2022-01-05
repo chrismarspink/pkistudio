@@ -43,141 +43,195 @@
 						<form method="post" action="">
 
 							<div class="form-group">
+
+									<div class="form-group">
+										<ul class="nav nav-pills nav-secondary" id="pills-tab" role="tablist">
+											<li class="nav-item">
+												<a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#keygen-rsa" role="tab" aria-controls="pills-home" aria-selected="false">RSA</a>
+											</li>
+											<li class="nav-item">
+												<a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#keygen-ecdsa" role="tab" aria-controls="pills-profile" aria-selected="true">Elliptic Curve</a>
+											</li>
+											<li class="nav-item">
+												<a class="nav-link" id="pills-contact-tab" data-toggle="pill" href="#keygen-dsa" role="tab" aria-controls="pills-contact" aria-selected="false">DSA</a>
+											</li>
+										</ul>
+										<div class="tab-content mt-2 mb-3" id="pills-tabContent">
+											<div class="tab-pane fade show active" id="keygen-rsa" role="tabpanel" aria-labelledby="pills-home-tab">
+												
+												<select class="form-control form-control" id="defaultSelect_RSA" name="rsa_keylen">
+													<!--option value="1024">1024 bits</option>
+													<option value="2048">2048 bits</option>
+													<option value="3192">3192 bits</option>
+													<option value="4096">4096 bits</option>
+													<option value="8192">8192 bits</option>
+													<option value="16384">16384 bits</option>
+													<option value="32768">32768 bits</option-->
+													{% for element in rsa_param %}
+      													<option value={{element}}>{{ element }}-bits </option>
+  													{% endfor %}
+												</select>
+											</div>
+
+											<div class="tab-pane fade" id="keygen-ecdsa" role="tabpanel" aria-labelledby="pills-profile-tab">
+												
+												<select class="form-control form-control" id="defaultSelect_ECC" name="ecc_keygen">
+													{% for element in ecc_curves %}
+      													<option>{{ element }} </option>
+  													{% endfor %}
+
+													<!--option>secp112r1</option>
+													<option>secp112r2</option>
+													<option>secp128r1</option>
+													<option>secp128r2</option>
+													<option>secp160k1</option>
+													<option>secp160r1</option>
+													<option>secp160r2</option>
+													<option>secp192k1</option>
+													<option>secp224k1</option>
+													<option>secp224r1</option>
+													<option>secp256k1</option>
+													<option>secp384r1</option>
+													<option>secp521r1</option>
+			
+													<option>prime192v1</option>
+													<option>prime192v2</option>
+													<option>prime192v3</option>
+													<option>prime239v1</option>
+													<option>prime239v2</option>
+													<option>prime239v3</option>
+													<option>prime256v1</option>
+													<option>sect113r1</option>
+													<option>sect113r2</option>
+													<option>sect131r1</option>
+													<option>sect131r2</option>
+													<option>sect163k1</option>
+													<option>sect163r1</option>
+													<option>sect163r2</option>
+													<option>sect193r1</option>
+													<option>sect193r2</option>
+													<option>sect233k1</option>
+													<option>sect233r1</option>
+													<option>sect239k1</option>
+													<option>sect283k1</option>
+													<option>sect283r1</option>
+													<option>sect409k1</option>
+													<option>sect409r1</option>
+													<option>sect571k1</option>
+													<option>c2pnb163v1</option>
+													<option>c2pnb163v2</option>
+													<option>c2pnb163v3</option>
+													<option>c2pnb176v1</option>
+													<option>c2tnb191v1</option>
+													<option>c2tnb191v2</option>
+													
+													<option>c2tnb191v3</option>
+													<option>c2pnb208w1</option>
+													<option>c2tnb239v1</option>
+													<option>c2tnb239v2</option>
+													<option>c2tnb239v3</option>
+													<option>c2pnb272w1</option>
+													<option>c2pnb304w1</option>
+													<option>c2tnb359v1</option>
+													<option>c2pnb368w1</option>
+													<option>c2tnb431r1</option>
+													<option>wap-wsg-idm-ecid-wtls1</option>
+													<option>wap-wsg-idm-ecid-wtls3</option>
+													<option>wap-wsg-idm-ecid-wtls4</option>
+													<option>wap-wsg-idm-ecid-wtls5</option>
+													<option>wap-wsg-idm-ecid-wtls6</option>
+													<option>wap-wsg-idm-ecid-wtls7</option>
+													<option>wap-wsg-idm-ecid-wtls8</option>
+													<option>wap-wsg-idm-ecid-wtls9</option>
+													
+													<option>wap-wsg-idm-ecid-wtls10</option>
+													<option>wap-wsg-idm-ecid-wtls11</option>
+													<option>wap-wsg-idm-ecid-wtls12</option>
+													<option>Oakley-EC2N-3</option>
+													<option>Oakley-EC2N-4</option>
+			
+													<option>brainpoolP160r1</option>
+													<option>brainpoolP160t1</option>
+													<option>brainpoolP192r1</option>
+													<option>brainpoolP192t1</option>
+													<option>brainpoolP224r1</option>
+													<option>brainpoolP224t1</option>
+													<option>brainpoolP256r1</option>
+													<option>brainpoolP256t1</option>
+													<option>brainpoolP320r1</option>
+													<option>brainpoolP320t1</option>
+													<option>brainpoolP384r1</option>
+													<option>brainpoolP384t1</option>
+													<option>brainpoolP512r1</option>
+													<option>brainpoolP512t1</option>
+													<option>SM2</option-->
+												</select>
+												
+											</div>
+											<div class="tab-pane fade" id="keygen-dsa" role="tabpanel" aria-labelledby="pills-contact-tab">
+												
+												<!--select class="form-control form-control" id="defaultSelect_DSA" name="dsa_keylen">
+													<option value="1024">1024 bits</option>
+													<option value="2048">2048 bits</option>
+													<option value="3192">3192 bits</option>
+													<option value="4096">4096 bits</option>
+													<option value="8192">8192 bits</option>
+													<option value="16384">16384 bits</option>
+													<option value="32768">32768 bits</option>
+												</select-->
+
+												<select class="form-control form-control" id="defaultSelect_DSA" name="dsa_keylen">
+													{% for element in rsa_param %}
+      													<option value={{element}}>{{ element }}-bits </option>
+  													{% endfor %}
+												</select>
+												
+											</div>
+										</div>
+									</div>	
+									
+								
 								<div class="form-group">
-		
-									<!--label class="form-label">Algorithm</label>
-											
-									<div class="selectgroup w-100">
-												<button class="btn btn-primary btn-border btn-round btn-sm" type="submit" name="alg" value="{{algorithm_name}}"><span class="btn-label"><i class="flaticon-repeat"></i></span>
-													{{algorithm_name}}
-												</button>
-									</div-->
+								    <textarea class="form-control" id="pem-data" rows="10">{{prikey_pem}}</textarea>
+							    </div>
+
+								<div class="form-group">
+								    <textarea class="form-control" id="pem-data" rows="5">{{pubkey_pem}}</textarea>
+							    </div>
 
 								
-									<label for="defaultSelect">Private Key Algorithm/Parameter </label>
 
-									<select class="form-control form-control" id="defaultSelect">
-										{% if  algorithm_name == 'RSA'  %}
-										
-									
-										<option>1024 bits</option>
-										<option>2048 bits</option>
-										<option>3192 bits</option>
-										<option>4096 bits</option>
-										<option>8192 bits</option>
-										<option>16384 bits</option>
-										{% else %}	
-										<option>secp112r1</option>
-										<option>secp112r2</option>
-										<option>secp128r1</option>
-										<option>secp128r2</option>
-										<option>secp160k1</option>
-										<option>secp160r1</option>
-										<option>secp160r2</option>
-										<option>secp192k1</option>
-										<option>secp224k1</option>
-										<option>secp224r1</option>
-										<option>secp256k1</option>
-										<option>secp384r1</option>
-										<option>secp521r1</option>
-
-										<option>prime192v1</option>
-										<option>prime192v2</option>
-										<option>prime192v3</option>
-										<option>prime239v1</option>
-										<option>prime239v2</option>
-										<option>prime239v3</option>
-										<option>prime256v1</option>
-										<option>sect113r1</option>
-										<option>sect113r2</option>
-										<option>sect131r1</option>
-										<option>sect131r2</option>
-										<option>sect163k1</option>
-										<option>sect163r1</option>
-										<option>sect163r2</option>
-										<option>sect193r1</option>
-										<option>sect193r2</option>
-										<option>sect233k1</option>
-										<option>sect233r1</option>
-										<option>sect239k1</option>
-										<option>sect283k1</option>
-										<option>sect283r1</option>
-										<option>sect409k1</option>
-										<option>sect409r1</option>
-										<option>sect571k1</option>
-										<option>c2pnb163v1</option>
-										<option>c2pnb163v2</option>
-										<option>c2pnb163v3</option>
-										<option>c2pnb176v1</option>
-										<option>c2tnb191v1</option>
-										<option>c2tnb191v2</option>
-										
-										<option>c2tnb191v3</option>
-										<option>c2pnb208w1</option>
-										<option>c2tnb239v1</option>
-										<option>c2tnb239v2</option>
-										<option>c2tnb239v3</option>
-										<option>c2pnb272w1</option>
-										<option>c2pnb304w1</option>
-										<option>c2tnb359v1</option>
-										<option>c2pnb368w1</option>
-										<option>c2tnb431r1</option>
-										<option>wap-wsg-idm-ecid-wtls1</option>
-										<option>wap-wsg-idm-ecid-wtls3</option>
-										<option>wap-wsg-idm-ecid-wtls4</option>
-										<option>wap-wsg-idm-ecid-wtls5</option>
-										<option>wap-wsg-idm-ecid-wtls6</option>
-										<option>wap-wsg-idm-ecid-wtls7</option>
-										<option>wap-wsg-idm-ecid-wtls8</option>
-										<option>wap-wsg-idm-ecid-wtls9</option>
-										
-										<option>wap-wsg-idm-ecid-wtls10</option>
-										<option>wap-wsg-idm-ecid-wtls11</option>
-										<option>wap-wsg-idm-ecid-wtls12</option>
-										<option>Oakley-EC2N-3</option>
-										<option>Oakley-EC2N-4</option>
-
-										<option>brainpoolP160r1</option>
-										<option>brainpoolP160t1</option>
-										<option>brainpoolP192r1</option>
-										<option>brainpoolP192t1</option>
-										<option>brainpoolP224r1</option>
-										<option>brainpoolP224t1</option>
-										<option>brainpoolP256r1</option>
-										<option>brainpoolP256t1</option>
-										<option>brainpoolP320r1</option>
-										<option>brainpoolP320t1</option>
-										<option>brainpoolP384r1</option>
-										<option>brainpoolP384t1</option>
-										<option>brainpoolP512r1</option>
-										<option>brainpoolP512t1</option>
-										<option>SM2</option>
-										{% endif %}	
-									</select>
-								</div>
 								<div class="form-group">
-								    <textarea class="form-control" id="pem-data" rows="10">{{message}}</textarea>
-							    </div>
+									<div class="input-group">
+										<input type="password" class="form-control" id="inpass" aria-label="Text input with dropdown button" placeholder="Password">
+										<div class="input-group-append">
+											<button class="btn btn-primary btn-border" type="button" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">Encryption Algorithm</button>
+											<select class="form-control form-control" id="pem_selected" name="pem_type">
+												{% for element in aes_alg_list %}
+      												<option>{{ element  }} </option>
+  												{% endfor %}
+											</select>
+										</div>
+									</div>
+								</div>
 
 								<div class="form-group">
 									<!--label for="password">Input password</label-->
 									<div class="form-check">
 										<label class="form-check-label">
-											<input class="form-check-input" type="checkbox" value="">
+											<input class="form-check-input" type="checkbox" name="encrypt_option" value="enc">
 											<span class="form-check-sign">Private key encryption password</span>
 										</label>
 									</div>
-									<input type="password" class="form-control" id="password" placeholder="Password">
+									
 								</div>
 
 								<div class="form-group">
 									<p class="demo">
-										<button class="btn btn-primary btn-border btn-round " type="submit" name="alg" value="{{algorithm_name}}"><span class="btn-label"><i class="flaticon-repeat"></i></span>
-											{{algorithm_name}}
-										</button>
 										<button class="btn btn-primary" type='submit' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
 											Generate Private Key
 										</button>
+
 										<button class="btn btn-primary" type='submit' id='gen_csr'><span class="btn-label"><i class="fa fa-check"></i></span>
 											CSR
 										</button>

@@ -47,30 +47,17 @@
 							
 						</div>
 						<div class="card-body">
+							<form method="post" action="">
 							<div class="form-group">
-								
-								<div class="form-group">
-									<label for="exampleFormControlFile1">Input file(.pfx/.p12)</label>
-									<input type="file" class="form-control-file" id="exampleFormControlFile1">
-								</div>
-
-								
-								<div class="form-group">
-									<label for="defaultSelect">Select Format</label>
-									<select class="form-control form-control" id="defaultSelect">
-										<option>File with PEM(Privacy Enhanced Mail) format</option>
-										<option>File with DER(Distinguished Encoding Rules) format</option>
-									</select>
-								</div>	
 								
 								<div class="form-group">
 									<p class="demo">
 											
-										<button class="btn btn-primary"><span class="btn-label"><i class="fa fa-check"></i></span>
-											Analyze
+										<button class="btn btn-primary btn-xs btn-border btn-round" type='submit' name="action" value='ecc_curves' ><span class="btn-label"><i class="fa fa-check"></i></span>
+											ecc curve list
 										</button>
 
-		    							<button class="btn btn-secondary"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
+		    							<button class="btn btn-secondary btn-xs btn-border btn-round"  type='submit' name='action' value='elliptic curves'><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
 											Clear
 										</button>
 		
@@ -78,6 +65,7 @@
 								</div>
 
 							</div>
+							</form>
 						</div>
 					</div>
 				</div>
@@ -86,18 +74,18 @@
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">ASN.1 Results</h4>
+							<h4 class="card-title">Results</h4>
 						</div>
 						<div class="card-body">
+
 							<p class="demo">
 								<div class="form-group">
-								    <textarea class="form-control" id="pem-data-parsed" rows="10"></textarea>
-							    </div>
-								<div class="form-group">
-										<button class="btn btn-default"><span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-											Save as File...
-										</button>
-								</div>
+								    <p>{{result}}</p>
+							    </div
+
+								{% for element in ecc_curves %}
+      								<p>{{ element }} </p>
+  								{% endfor %}
 							</p>
 						</div>
 						

@@ -2,7 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
-
+from flask import Flask
 from flask import jsonify, render_template, redirect, request, url_for
 from flask_login import (
     current_user,
@@ -46,6 +46,7 @@ from flask import Response
 
 import app
 import logging
+import logging.handlers
 
 from config import config_dict, config
 
@@ -55,7 +56,24 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 get_config_mode = 'Debug' if DEBUG else 'Production'
 app_config = config_dict[get_config_mode.capitalize()]
 
+#logger = logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
+#consoleHandler = logging.StreamHandler(sys.stderr)
+#logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 
+#logger = logging.getLogger()
+#logger.addHandler(consoleHandler)
+aes_alg_list = ["aes128", "aes192", "aes256", 
+    "aes-128-ctr", "aes-192-ctr", "aes-256-ctr", 
+    "aes-128-cfb", "aes-192-cfb", "aes-256-cfb", 
+    "aes-128-cfb1", "aes-192-cfb1", "aes-256-cfb1",
+    "aes-128-cfb8", "aes-192-cfb8", "aes-256-cfb8",
+    "aes-128-ofb", "aes-192-ofb", "aes-256-ofb",
+    "aes-128-ecb", "aes-192-ecb", "aes-256-ecb",
+    "aes-128-cbc", "aes-192-cbc", "aes-256-cbc"]
+
+rsabits = [1024, 2048, 4096, 8192, 16384]											
+
+app = Flask(__name__)
 
 def do_openssl(pem, *args):
     """
@@ -70,6 +88,8 @@ def do_openssl(pem, *args):
     proc.wait()
     return output
 ##########
+
+
 
 
 def run_cmd(cmd, input=None):
@@ -151,50 +171,27 @@ def register():
     else:
         return render_template( 'accounts/register.html', form=create_account_form)
 
-    cert_pem="""-----BEGIN CERTIFICATE-----
-MIICIjCCAYsCAgPoMA0GCSqGSIb3DQEBBQUAMFkxCzAJBgNVBAYTAktSMQ8wDQYD
-VQQKDAZFUm1pbmQxFjAUBgNVBAsMDVdlYiBJc29sYXRpb24xITAfBgNVBAMMGGpr
-a2ltdWktTWFjQm9va1Byby5sb2NhbDAeFw0yMTExMjYwODA2MjJaFw0zMTExMjQw
-ODA2MjJaMFkxCzAJBgNVBAYTAktSMQ8wDQYDVQQKDAZFUm1pbmQxFjAUBgNVBAsM
-DVdlYiBJc29sYXRpb24xITAfBgNVBAMMGGpra2ltdWktTWFjQm9va1Byby5sb2Nh
-bDCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAunuyXMXefQzCKxBSzYFOwNKC
-2IMfxPLcX8dAXR092mQewsKEonHyc66deUC6Nrpn3CAyHSOVKv1mD/PL3UDxCF3b
-ptfvDiVlXUklxS0+++KM7Fa8MA1/FdfreO5ArZezJw3y0WtUv5BrOAnhkPe/YF4Q
-M2rNTj5xIVuacjkC6f8CAwEAATANBgkqhkiG9w0BAQUFAAOBgQB7xoYasTRMd2SP
-uUAuOJsAy7+jFGKQMpprrZqBQTGjdVchCocxRfCJYknevTQeq+knTJhkhy9BH1F7
-T3MO4n9jdTs+CzLqUn4PXN3EO6nI4MqZ3o9EHyW2kpd9UpGiZmv9nSH247INA0ss
-IsS+BdFLnH/bvGz61jTF8cYLqC/YdA==
------END CERTIFICATE-----
-"""
-
-
 
 @blueprint.route('/analyzer-asn1.html', methods=['GET', 'POST'])
 def analyzer_asn1():
+    app.logger.info("analyzer_asn1...")
+    msg=None
+    curves=[]
 
-    cert_pem="""-----BEGIN CERTIFICATE-----
-MIICIjCCAYsCAgPoMA0GCSqGSIb3DQEBBQUAMFkxCzAJBgNVBAYTAktSMQ8wDQYD
-VQQKDAZFUm1pbmQxFjAUBgNVBAsMDVdlYiBJc29sYXRpb24xITAfBgNVBAMMGGpr
-a2ltdWktTWFjQm9va1Byby5sb2NhbDAeFw0yMTExMjYwODA2MjJaFw0zMTExMjQw
-ODA2MjJaMFkxCzAJBgNVBAYTAktSMQ8wDQYDVQQKDAZFUm1pbmQxFjAUBgNVBAsM
-DVdlYiBJc29sYXRpb24xITAfBgNVBAMMGGpra2ltdWktTWFjQm9va1Byby5sb2Nh
-bDCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAunuyXMXefQzCKxBSzYFOwNKC
-2IMfxPLcX8dAXR092mQewsKEonHyc66deUC6Nrpn3CAyHSOVKv1mD/PL3UDxCF3b
-ptfvDiVlXUklxS0+++KM7Fa8MA1/FdfreO5ArZezJw3y0WtUv5BrOAnhkPe/YF4Q
-M2rNTj5xIVuacjkC6f8CAwEAATANBgkqhkiG9w0BAQUFAAOBgQB7xoYasTRMd2SP
-uUAuOJsAy7+jFGKQMpprrZqBQTGjdVchCocxRfCJYknevTQeq+knTJhkhy9BH1F7
-T3MO4n9jdTs+CzLqUn4PXN3EO6nI4MqZ3o9EHyW2kpd9UpGiZmv9nSH247INA0ss
-IsS+BdFLnH/bvGz61jTF8cYLqC/YdA==
------END CERTIFICATE-----
-"""
+    if request.method == 'POST':
+        action = request.form.get('action')
+        ##app.logger.info("action --> " + action)
+        
+        if action == "ecc_curves":
+            for curve in crypto.get_elliptic_curves():
+                app.logger.info(curve.name)
+                curves.append(curve.name)
 
-    #output = do_openssl(cert_pem, b"x509", b"-text", b"-noout")
-    #cert_pem_parsed = output
+        
+        return render_template( '/analyzer-asn1.html', ecc_curves=curves)    
 
-    flash(' ASN.1 PASING ')      
-    flash(' 2nd Flash Message... ')      
-    result=cert_pem
-    return render_template( '/analyzer-asn1.html', result=result)
+    
+    return render_template( '/analyzer-asn1.html', result=msg)
 
 
 
@@ -203,6 +200,13 @@ def generator_privatekey():
 
     algorithm_name="RSA"
     #alg="no algorithm selected..."
+    curves=[]
+    
+
+    for curve in crypto.get_elliptic_curves():
+        app.logger.info(curve.name)
+        curves.append(curve.name)
+
         
     if request.method == 'POST':
 
@@ -216,12 +220,26 @@ def generator_privatekey():
         key = crypto.PKey()
         key.generate_key(crypto.TYPE_RSA, 1024)
         priv_key = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
-        message=priv_key.decode('utf-8')
+        prikey_pem=priv_key.decode('utf-8')
+
+        #pubkey = key.get_pubkey()
+        pubkey_pem = crypto.dump_publickey(crypto.FILETYPE_PEM, key)
+        pubkey_pem = pubkey_pem.decode('utf-8')
         alg=name
+
+        ## expect 'enc'
+        encopt_checked = request.form.get("encrypt_option")
+        if encopt_checked:
+            app.logger.info("generate_privatekey: encopt_checked: " + encopt_checked)
+
+        else:
+            app.logger.info("generate_privatekey: encopt_checked: disabled(None)")
+
     
-        return render_template( '/generator-privatekey.html', algorithm_name=algorithm_name, message=message)
+        return render_template( '/generator-privatekey.html', prikey_pem=prikey_pem, pubkey_pem=pubkey_pem, ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+
     message="GET"
-    return render_template( '/generator-privatekey.html', algorithm_name=algorithm_name, message=message)
+    return render_template( '/generator-privatekey.html', ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
 
 
 @blueprint.route('/analyzer-pkcs12.html', methods=['GET', 'POST'])
@@ -272,21 +290,107 @@ def analyzer_pkcs12():
     flash('GET') 
     return render_template( '/analyzer-pkcs12.html', result=result)
 
+PEM_TYPE_LIST = [
+    { 'type': 'rsapubkey',  'tag': 'RSA PUBLIC KEY', 'desc': 'RSA Public Key' },
+    { 'type': 'encrypted_rsapribkey', 
+                            'tag': 'RSA PRIVATE KEY', 'desc': 'Encrypted RSA Private Key', 'proc-type':'Proc-Type: 4,ENCRYPTED'},
+    { 'type': 'rsapribkey', 'tag': 'RSA PRIVATE KEY', 'desc': 'RSA Private Key'},
+    { 'type': 'crl',        'tag': 'X509 CRL', 'desc': 'X.509 CRL' },
+    { 'type': 'certificate','tag': 'CERTIFICATE', 'desc': 'X.509 Certificate' },
+
+    { 'type': 'csr',        'tag': 'CERTIFICATE REQUEST', 'desc': 'Certificate Request' },
+    { 'type': 'newcsr',     'tag': 'NEW CERTIFICATE REQUEST', 'desc': 'New Certificate Request' },
+
+    { 'type': 'pkcs7',      'tag': 'PKCS7', 'desc': 'PKCS7' },
+    { 'type': 'dsaprikey',  'tag': 'PRIVATE KEY', 'desc': 'DSA Private Key' },
+    { 'type': 'dsaprikey',  'tag': 'DSA PRIVATE KEY', 'desc': 'DSA Private Key' },
+
+    { 'type': 'ecprikey',   'tag': 'EC PRIVATE KEY', 'desc': 'EC PRIVATE KEY' },
+    { 'type': 'pkcs7',      'tag': 'PKCS7', 'desc': 'PKCS7' }
+]
+
+
+def get_pem_type(pemstr):
+    
+    app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
+    if pemstr and pemstr.startswith("-----BEGIN"):
+        for dict in PEM_TYPE_LIST:      
+            header = footer = proctype = None
+            header = "-----BEGIN " + dict['tag'] + "-----"
+            footer = "-----END " + dict['tag'] + "-----"
+            proctype = dict['proc-type']
+            line2 = pemstr.splitlines()[2]
+
+            app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
+
+            if pemstr.startswith(header)  and footer in pemstr:
+                if proctype and line2 == dict['proc-type']:
+                    return dict['type']
+                return dict['type']
+        return None
+    else:
+        return None
 
 @blueprint.route('/analyzer-pem.html', methods=['GET', 'POST'])
 def analyzer_pem():
 
+    app.logger.info('>>>>> Analyzer_pem START...')
     result = "GET"
-    if request.method == 'POST':
-        pem_type = request.form.get("pem_type")
-        result = "pem type: " + pem_type
-        return render_template( '/analyzer-pem.html', result=result)    
+    intext = None
+    #infile = None
+    intext_pem = None
+    errmsg = None
     
+    for dict in PEM_TYPE_LIST:
+        app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
+
+    
+    
+    if request.method == 'POST':
+
+        dict = request.form
+        for key in dict:
+            app.logger.info('form key '+ dict[key])
+
+        intype = request.form.get("intype")
+        inputtext = request.form.get("inputtext", None)
+        inputfile = request.form.get("inputfile", None)
+        action = request.form.get("action") ##analyze
+        
+        if action: app.logger.info("ation ==>  " + action)
+        
+        app.logger.info("inputtext ==>  " + inputtext)
+
+        if action == "analyze":
+            app.logger.info("intype=" + intype)
+   
+        if inputtext and inputtext.startswith("-----BEGIN"):
+            intext_pem = inputtext
+            app.logger.info("intext ==> " + intext_pem)
+
+#		RSA Public Key
+           
+        if inputtext.startswith("-----BEGIN"):
+            cert_pem = do_openssl(inputtext, b"x509", b"-text", b"-noout")
+            result = cert_pem.decode('utf-8')
+            return render_template( '/analyzer-pem.html', result=result) 
+        elif inputfile:
+            flash("inputfile...")
+        else:
+            flash("error: no input data")
+            return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg)    
+
+        #input1 = intext_pem.encode()
+        #cert_pem = do_openssl(input1, b"x509", b"-text", b"-noout")
+        result = cert_pem.decode('utf-8')
+        
+        return render_template( '/analyzer-pem.html', result=result)    
+
+    ##GET    
     return render_template( '/analyzer-pem.html', result=result)
 
 @blueprint.route('/cipher-encrypt.html', methods=['GET', 'POST'])
 def cipher_encrypt():
-
         
     if request.method == 'POST':
 
