@@ -1,16 +1,17 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} UI Avatars {% endblock %} 
+{% block title %} PEM Analyzer {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
 
+
 	<div class="content">
 		<div class="page-inner">
 			<div class="page-header">
-				<h4 class="page-title">ASN.1(Abstract Syntax Notation) Data Analyze</h4>
+				<h4 class="page-title">PEM Data Analyzer</h4>
 				<ul class="breadcrumbs">
 					<li class="nav-home">
 						<a href="#">
@@ -27,9 +28,10 @@
 						<i class="flaticon-right-arrow"></i>
 					</li>
 					<li class="nav-item">
-						<a href="#">ASN.1</a>
+						<a href="#">PEM Analyze</a>
 					</li>
 				</ul>
+				
 			</div>
 
 			{% for message in get_flashed_messages() %}
@@ -38,60 +40,117 @@
  					{{ message }}
  			</div>
  			{% endfor %}
-			 
+
+
+
 			<div class="row">
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">ASN.1 file(PEM/DER) analyzer</h4>
-							
+							<h4 class="card-title">Decode PRM/ASN.1 Data</h4>
 						</div>
-						<div class="card-body">
-							<form method="post" action="">
-							<div class="form-group">
+
+						<div class="card-body n-5">
+							<form method="post" action="" enctype="multipart/form-data">	
+							<div class="form-group ">
 								
+								<div class="form-group">
+									<ul class="nav nav-pills nav-secondary" id="pills-tab" role="tablist">
+										<li class="nav-item">
+											<a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#in-text" role="tab" aria-controls="pills-home" aria-selected="false">Text</a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#in-file" role="tab" aria-controls="pills-profile" aria-selected="true">File</a>
+										</li>
+										
+									</ul>
+
+									<div class="tab-content" id="pills-tabContent">
+										<div class="tab-pane fade show active" id="in-text" role="tabpanel" aria-labelledby="pills-home-tab">
+											<textarea class="form-control" id="pem-data" rows="10" name="inputtext">{{inputtext}}</textarea>
+										</div>
+
+										<div class="tab-pane fade" id="in-file" role="tabpanel" aria-labelledby="pills-profile-tab" name="infile-tab">
+											
+											<div class="form-group">
+												<label for="exampleFormControlFile1">Input File</label>
+												<input type="file" class="form-control-file" id="exampleFormControlFile1" name="inputfile">
+											</div>
+											
+										</div>
+									</div>
+								</div>	
+
+								
+
+							{% if errtype == 'inpass' %}
+								<div class="form-group has-error ">
+							{% else %}	
+								<div class="form-group">
+							{% endif %}	
+									<label for="password">Password</label>
+									<input type="password" class="form-control" name="inpass" id="inpass" placeholder="Input password">
+								</div>
+
+								<div class="form-group">
+									<label for="defaultSelect">Select Format</label>
+									<select class="form-control form-control" id="pem_selected" name="intype">
+										<option value="crl">CRL(Certificate Revocation List)</option>
+										<option value="crt">CRT(X.509 Certificate)</option>
+										<option value="csr">CSR(Certificate Signing Request)</option>
+										<option value="newcsr">New CSR</option>
+										<option value="rsaprikey">RSA Private Key</option>
+										<option value="pkcs7">PKCS7</option>
+										<option value="newrsaprikey"> PEM Private Key</option>
+										<option value="ecpkey">Elliptic Curve Private Key</option>
+										<option value="rsapubkey">RSA Public Key</option>
+										<option value="ecprikey">Encrypted Private Key</option>
+										<option value="cms">CMS</option>
+									</select>
+								</div>
+
 								<div class="form-group">
 									<p class="demo">
 											
-										<button class="btn btn-primary btn-xs btn-border btn-round" type='submit' name="action" value='ecc_curves' ><span class="btn-label"><i class="fa fa-check"></i></span>
-											ecc curve list
+										<button class="btn btn-primary" type="submit" name="action" value="analyze"><span class="btn-label"><i class="fa fa-check"></i></span>
+											Analyze
 										</button>
 
-		    							<button class="btn btn-secondary btn-xs btn-border btn-round"  type='submit' name='action' value='elliptic curves'><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
+		    							<button class="btn btn-secondary" type="submit" name="action" value="clear"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
 											Clear
 										</button>
 		
 									</p>
 								</div>
 
-							</div>
 							</form>
+							</div>
+
 						</div>
 					</div>
 				</div>
-
-
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">Results</h4>
+							<h4 class="card-title">PEM Analyze Result</h4>
+							
 						</div>
 						<div class="card-body">
-
 							<p class="demo">
 								<div class="form-group">
-								    <p>{{result}}</p>
-							    </div
 
-								{% for element in ecc_curves %}
-      								<p>{{ element }} </p>
-  								{% endfor %}
+									{% if errtype == 'error' %}
+										<p class="text-danger">{{ errmsg }}</p>
+									{% endif %}
+
+								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}
+									{% endautoescape %}
+									</textarea>
+							    </div>
 							</p>
 						</div>
-						
 					</div>
 				</div>
-
 				
 				
 			</div>
@@ -99,10 +158,61 @@
 	</div>
 
 
-	
-	
-	
-	
+	<textarea>
+		RSA Public Key
+
+-----BEGIN RSA PUBLIC KEY-----
+-----END RSA PUBLIC KEY-----
+Encrypted Private Key
+
+-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+-----END RSA PRIVATE KEY-----
+CRL
+
+-----BEGIN X509 CRL-----
+-----END X509 CRL-----
+CRT
+
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+CSR
+
+-----BEGIN CERTIFICATE REQUEST-----
+-----END CERTIFICATE REQUEST-----
+NEW CSR
+
+-----BEGIN NEW CERTIFICATE REQUEST-----
+-----END NEW CERTIFICATE REQUEST-----
+PEM
+
+-----END RSA PRIVATE KEY-----
+-----BEGIN RSA PRIVATE KEY-----
+PKCS7
+
+-----BEGIN PKCS7-----
+-----END PKCS7-----
+PRIVATE KEY
+
+-----BEGIN PRIVATE KEY-----
+-----END PRIVATE KEY-----
+DSA KEY
+
+-----BEGIN DSA PRIVATE KEY-----
+-----END DSA PRIVATE KEY-----
+Elliptic Curve
+
+-----BEGIN EC PRIVATE KEY-----
+-----BEGIN EC PRIVATE KEY-----
+PGP Private Key
+
+-----BEGIN PGP PRIVATE KEY BLOCK-----
+-----END PGP PRIVATE KEY BLOCK-----
+PGP Public Key
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+-----END PGP PUBLIC KEY BLOCK-----
+	</textarea>
 
 {% endblock content %}
 
@@ -111,43 +221,5 @@
 
 	<!-- Atlantis DEMO methods, don't include it in your project! -->
 	<script src="/static/assets/js/setting-demo2.js"></script>
-	<script>
-	function readURL(input) {
-		if (input.files && input.files[0]) {
-	  
-		  var reader = new FileReader();
-	  
-		  reader.onload = function(e) {
-			$('.image-upload-wrap').hide();
-	  
-			$('.file-upload-image').attr('src', e.target.result);
-			$('.file-upload-content').show();
-	  
-			$('.image-title').html(input.files[0].name);
-		  };
-	  
-		  reader.readAsDataURL(input.files[0]);
-	  
-		} else {
-		  removeUpload();
-		}
-	  }
-	  
-	  function removeUpload() {
-		$('.file-upload-input').replaceWith($('.file-upload-input').clone());
-		$('.file-upload-content').hide();
-		$('.image-upload-wrap').show();
-	  }
-	  $('.image-upload-wrap').bind('dragover', function () {
-		  $('.image-upload-wrap').addClass('image-dropping');
-		});
-		$('.image-upload-wrap').bind('dragleave', function () {
-		  $('.image-upload-wrap').removeClass('image-dropping');
-	  });
-	</script>
-	  
-	  
-	  
-	  
 
 {% endblock javascripts %}

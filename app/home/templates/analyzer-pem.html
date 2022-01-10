@@ -48,12 +48,11 @@
 					<div class="card">
 						<div class="card-header">
 							<h4 class="card-title">Decode PRM/ASN.1 Data</h4>
-							
 						</div>
 
-						<div class="card-body">
+						<div class="card-body n-5">
 							<form method="post" action="" enctype="multipart/form-data">	
-							<div class="form-group">
+							<div class="form-group ">
 								
 								<div class="form-group">
 									<ul class="nav nav-pills nav-secondary" id="pills-tab" role="tablist">
@@ -66,9 +65,9 @@
 										
 									</ul>
 
-									<div class="tab-content mt-2 mb-3" id="pills-tabContent">
+									<div class="tab-content" id="pills-tabContent">
 										<div class="tab-pane fade show active" id="in-text" role="tabpanel" aria-labelledby="pills-home-tab">
-											<textarea class="form-control" id="pem-data" rows="10" name="inputtext"></textarea>
+											<textarea class="form-control" id="pem-data" rows="10" name="inputtext">{{inputtext}}</textarea>
 										</div>
 
 										<div class="tab-pane fade" id="in-file" role="tabpanel" aria-labelledby="pills-profile-tab" name="infile-tab">
@@ -77,12 +76,39 @@
 												<label for="exampleFormControlFile1">Input File</label>
 												<input type="file" class="form-control-file" id="exampleFormControlFile1" name="inputfile">
 											</div>
+
+											<div class="form-group">
+												<label for="defaultSelect">Select File Format</label>
+												<select class="form-control form-control" id="pem_selected" name="informat">
+													<option value="crl">CRL(Certificate Revocation List)</option>
+													<option value="crt">CRT(X.509 Certificate)</option>
+													<option value="csr">CSR(Certificate Signing Request)</option>
+													<!--option value="newcsr">New CSR</option-->
+													<option value="csr">New CSR</option>
+													<option value="rsaprikey">RSA Private Key</option>
+													<option value="pkcs7">PKCS7</option>
+													<option value="ecpripkey">Elliptic Curve Private Key</option>
+													<option value="rsapubkey">RSA Public Key</option>
+													<option value="enc_rsaprikey">Encrypted Private Key</option>
+													<option value="cms">CMS</option>
+												</select>
+											</div>
 											
 										</div>
 									</div>
 								</div>	
 
+
+								{% if errtype == 'inpass' %}
+								<div class="form-group has-error ">
+								{% else %}	
 								<div class="form-group">
+								{% endif %}	
+									<label for="password">Password</label>
+									<input type="password" class="form-control" name="inpass" id="inpass" placeholder="Input password">
+								</div>
+
+								<!--div class="form-group">
 									<label for="defaultSelect">Select Format</label>
 									<select class="form-control form-control" id="pem_selected" name="intype">
 										<option value="crl">CRL(Certificate Revocation List)</option>
@@ -97,7 +123,7 @@
 										<option value="ecprikey">Encrypted Private Key</option>
 										<option value="cms">CMS</option>
 									</select>
-								</div>
+								</div-->
 
 								<div class="form-group">
 									<p class="demo">
@@ -128,6 +154,11 @@
 						<div class="card-body">
 							<p class="demo">
 								<div class="form-group">
+
+									{% if errtype == 'error' %}
+										<p class="text-danger">{{ errmsg }}</p>
+									{% endif %}
+
 								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}
 									{% endautoescape %}
 									</textarea>

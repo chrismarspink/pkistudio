@@ -1,0 +1,158 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}  ASN.1 PARSER {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">ASN.1(Abstract Syntax Notation) Data Analyze</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Analyzer</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">ASN.1</a>
+					</li>
+				</ul>
+			</div>
+
+			{% for message in get_flashed_messages() %}
+ 			<div class="alert alert-warning">
+ 				<button type="button" class="close" data-dismiss="alert">&times;</button>
+ 					{{ message }}
+ 			</div>
+ 			{% endfor %}
+			 
+			<div class="row">
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">ASN.1 file(PEM/DER) analyzer</h4>
+							<p>ASN1 파싱 기능은 PEM 데이터 파싱 기능의 일부로 통합...</p>
+							<p>기능 테스트 페이지로 사용중이므로 삭제하지 말것!</p>
+						</div>
+						<div class="card-body">
+							<form method="post" action="">
+							<div class="form-group">
+								
+								<div class="form-group">
+									<p class="demo">
+											
+										<button class="btn btn-primary btn-xs btn-border btn-round" type='submit' name="action" value='ecc_curves' ><span class="btn-label"><i class="fa fa-check"></i></span>
+											ecc curve list
+										</button>
+
+		    							<button class="btn btn-secondary btn-xs btn-border btn-round"  type='submit' name='action' value='elliptic curves'><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
+											Clear
+										</button>
+		
+									</p>
+								</div>
+
+							</div>
+							</form>
+						</div>
+					</div>
+				</div>
+
+
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Results</h4>
+						</div>
+						<div class="card-body">
+
+							<p class="demo">
+								<div class="form-group">
+								    <p>{{result}}</p>
+							    </div>
+
+								<button class="btn btn-secondary btn-xs btn-border btn-round"  type='submit' name='action' value='elliptic curves'><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
+									Clear
+								</button>
+
+								{% for element in ecc_curves %}
+      								<p> {{ element }} </p>
+  								{% endfor %}
+							</p>
+						</div>
+						
+					</div>
+				</div>
+
+				
+				
+			</div>
+		</div>
+	</div>
+
+
+	
+	
+	
+	
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+	<script>
+	function readURL(input) {
+		if (input.files && input.files[0]) {
+	  
+		  var reader = new FileReader();
+	  
+		  reader.onload = function(e) {
+			$('.image-upload-wrap').hide();
+	  
+			$('.file-upload-image').attr('src', e.target.result);
+			$('.file-upload-content').show();
+	  
+			$('.image-title').html(input.files[0].name);
+		  };
+	  
+		  reader.readAsDataURL(input.files[0]);
+	  
+		} else {
+		  removeUpload();
+		}
+	  }
+	  
+	  function removeUpload() {
+		$('.file-upload-input').replaceWith($('.file-upload-input').clone());
+		$('.file-upload-content').hide();
+		$('.image-upload-wrap').show();
+	  }
+	  $('.image-upload-wrap').bind('dragover', function () {
+		  $('.image-upload-wrap').addClass('image-dropping');
+		});
+		$('.image-upload-wrap').bind('dragleave', function () {
+		  $('.image-upload-wrap').removeClass('image-dropping');
+	  });
+	</script>
+	  
+	  
+	  
+	  
+
+{% endblock javascripts %}
