@@ -2,6 +2,7 @@
 """
 Copyright (c) 2019 - present AppSeed.us
 """
+
 from flask import Flask
 from flask import jsonify, render_template, redirect, request, url_for
 from flask_login import (
@@ -50,6 +51,10 @@ import logging
 import logging.handlers
 
 from config import config_dict, config
+
+Version="0.1"
+Version_Date="2022-01-10"
+App_Name="PKI.STUDIO"
 
 # WARNING: Don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
