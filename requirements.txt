@@ -10,3 +10,4 @@ gunicorn
 jinja2
 pyopenssl
 werkzeug
+pyjks

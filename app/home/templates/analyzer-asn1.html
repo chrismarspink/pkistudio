@@ -53,9 +53,15 @@
 						<div class="card-body n-5">
 							<form method="post" action="" enctype="multipart/form-data">	
 							<div class="form-group ">
+							
+								
 								
 								<div class="form-group">
-									<ul class="nav nav-pills nav-secondary" id="pills-tab" role="tablist">
+									<label for="exampleFormControlFile1">Input File</label>
+									<input type="file" class="form-control-file" id="exampleFormControlFile1" name="inputfile">
+								</div>
+
+									<!--ul class="nav nav-pills nav-secondary" id="pills-tab" role="tablist">
 										<li class="nav-item">
 											<a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#in-text" role="tab" aria-controls="pills-home" aria-selected="false">Text</a>
 										</li>
@@ -78,47 +84,16 @@
 											</div>
 											
 										</div>
-									</div>
-								</div>	
-
-								
-
-							{% if errtype == 'inpass' %}
-								<div class="form-group has-error ">
-							{% else %}	
-								<div class="form-group">
-							{% endif %}	
-									<label for="password">Password</label>
-									<input type="password" class="form-control" name="inpass" id="inpass" placeholder="Input password">
-								</div>
-
-								<div class="form-group">
-									<label for="defaultSelect">Select Format</label>
-									<select class="form-control form-control" id="pem_selected" name="intype">
-										<option value="crl">CRL(Certificate Revocation List)</option>
-										<option value="crt">CRT(X.509 Certificate)</option>
-										<option value="csr">CSR(Certificate Signing Request)</option>
-										<option value="newcsr">New CSR</option>
-										<option value="rsaprikey">RSA Private Key</option>
-										<option value="pkcs7">PKCS7</option>
-										<option value="newrsaprikey"> PEM Private Key</option>
-										<option value="ecpkey">Elliptic Curve Private Key</option>
-										<option value="rsapubkey">RSA Public Key</option>
-										<option value="ecprikey">Encrypted Private Key</option>
-										<option value="cms">CMS</option>
-									</select>
-								</div>
+									</div-->
+							
 
 								<div class="form-group">
 									<p class="demo">
 											
 										<button class="btn btn-primary" type="submit" name="action" value="analyze"><span class="btn-label"><i class="fa fa-check"></i></span>
-											Analyze
+											ASN.1 Parse
 										</button>
 
-		    							<button class="btn btn-secondary" type="submit" name="action" value="clear"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
-											Clear
-										</button>
 		
 									</p>
 								</div>
@@ -132,7 +107,7 @@
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">PEM Analyze Result</h4>
+							<h4 class="card-title">ASN.1 Result</h4>
 							
 						</div>
 						<div class="card-body">

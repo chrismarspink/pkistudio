@@ -39,54 +39,72 @@
 							
 						</div>
 						<div class="card-body">
+						<form method="post" action="">	
 							<div class="form-group">
 								<div class="form-group">
 									<label for="defaultSelect">Digest Algorithm </label>
 			
-									<select class="form-control form-control" id="defaultSelect">
-										<option>blake2b512</option>
-										<option>blake2s256</option>
-										<option>md4</option>
-										<option>md5-sha1</option>
-										<option>mdc2</option>
-										<option>ripemd</option>
-										<option>ripemd160</option>
-										<option>rmd160</option>
-										<option>sha1</option>
-										<option>sha224</option>
-										<option>sha256</option>
+									<select class="form-control" id="dgst_alg" name="dgst_alg">
+										
+										<option value="sha256">sha256</option>
+										<option value="sha3-256">sha3-256</option>
+										<option value="sha224">sha224</option>
+										<option value="sha3-224">sha3-224</option>
+										<option value="sha3-384">sha3-384</option>
+										<option value="sha512">sha512</option>
+										<option value="sha512-256">sha512-256</option>
 
-										<option>sha3-224</option>
-										<option>sha3-384</option>
-										<option>sha3-256</option>
-										<option>sha3-512</option>
-										<option>sha384</option>
-										<option>sha512</option>
-										<option>sha512-224</option>
-										<option>sha512-256</option>
-										<option>shake128</option>
-										<option>shake256</option>
-										<option>sm3</option>
-
-										<option>ssl3-md5</option>
-										<option>ssl3-sha1 </option>
-										<option>whirlpool</option>
+										<option value="md4">md4</option>
+										<option value="md5-sha1">md5-sha1</option>
+										<option value="mdc2">mdc2</option>
+										<option value="ripemd">ripemd</option>
+										<option value="ripemd160">ripemd160</option>
+										<option value="rmd160">rmd160</option>
+										<option value="sha1">sha1</option>
+										
+										<option value="shake128">shake128</option>
+										<option value="shake256">shake256</option>
+										<option value="sm3">sm3</option>
+										<option value="ssl3-md5">ssl3-md5</option>
+										<option value="ssl3-sha1">ssl3-sha1 </option>
+										<option value="blake2b512" >blake2b512</option>
+										<option value="blake2s256">blake2s256</option>
 									</select>
 								</div>
+
 								<div class="form-group">
-								    <textarea class="form-control" id="pem-data" rows="10"></textarea>
+								    <textarea class="form-control" id="pem-data" rows="5" name="inputtext"></textarea>
 							    </div>
+
+								{% if errtype == 'inpass' %}
+								<div class="form-group has-error ">
+								{% else %}	
+								<div class="form-group">
+								{% endif %}	
+									<div class="input-group-append">
+										<div class="form-check">
+											<label class="form-check-label">
+												<input class="form-check-input" type="checkbox" name="hmac_checked" value="hmac">
+												<span class="form-check-sign">Generate hashed MAC with key</span>
+											</label>
+										</div>
+									</div>
+									
+									<input type="password" class="form-control" name="inpass" id="inpass" aria-label="Text input with dropdown button" placeholder="Password">
+								
+									
+								</div>
 
 								<div class="form-group">
 									<p class="demo">
 											
-										<button class="btn btn-primary"><span class="btn-label"><i class="fa fa-check"></i></span>
-											Encode Message
+										<button class="btn btn-primary"   type="submit" name="action" value="encode"><span class="btn-label"><i class="fas fa-lock"></i></span>
+											Generate Digest
 										</button>
-										<button class="btn btn-primary"><span class="btn-label"><i class="fa fa-check"></i></span>
-											Decode Message
-										</button>	
-		    							<button class="btn btn-secondary"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
+										<!--button class="btn btn-primary"   type="submit" name="action" value="decode"><span class="btn-label"><i class="fas fa-lock-open"></i></span>
+											Decode 
+										</button-->	
+		    							<button class="btn btn-secondary" type="submit" name="action" value="clear"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
 											Clear
 										</button>
 		
@@ -94,6 +112,7 @@
 								</div>
 
 							</div>
+						</form>
 						</div>
 					</div>
 				</div>
@@ -106,10 +125,10 @@
 						<div class="card-body">
 							<p class="demo">
 								<div class="form-group">
-								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}
-{% endautoescape %}
+								    <textarea class="form-control" id="pem-data-parsed" rows="2">{% autoescape false %}{{result}}{% endautoescape %}
 									</textarea>
 							    </div>
+								
 							</p>
 						</div>
 					</div>

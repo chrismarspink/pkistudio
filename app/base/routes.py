@@ -62,12 +62,6 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 get_config_mode = 'Debug' if DEBUG else 'Production'
 app_config = config_dict[get_config_mode.capitalize()]
 
-#logger = logging.getLogger().addHandler(logging.StreamHandler(sys.stderr))
-#consoleHandler = logging.StreamHandler(sys.stderr)
-#logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-
-#logger = logging.getLogger()
-#logger.addHandler(consoleHandler)
 aes_alg_list = ["aes128", "aes192", "aes256", 
     "aes-128-ctr", "aes-192-ctr", "aes-256-ctr", 
     "aes-128-cfb", "aes-192-cfb", "aes-256-cfb", 
@@ -316,7 +310,7 @@ PEM_TYPE_LIST = [
 ]
 
 
-def get_pem_type(pemstr):
+def get_pem_typeXXX(pemstr):
     
     app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
     if pemstr and pemstr.startswith("-----BEGIN"):
@@ -352,6 +346,7 @@ def get_pem_type(inputtext):
     elif inputtext.startswith("-----BEGIN PUBLIC KEY-----"): pemtype = "rsapubkey"
     elif inputtext.startswith("-----BEGIN RSA PRIVATE KEY-----"): pemtype = "rsaprikey"
     elif inputtext.startswith("-----BEGIN RSA ENCRYPTED PRIVATE KEY-----"): pemtype = "enc_rsaprikey"
+    elif inputtext.startswith("-----BEGIN ENCRYPTED PRIVATE KEY-----"): pemtype = "enc_rsaprikey"
     elif inputtext.startswith("-----BEGIN PKCS7-----"): pemtype = "pkcs7"
     elif inputtext.startswith("-----BEGIN X509 CRL-----"): pemtype = "crl"
     elif inputtext.startswith("-----BEGIN CMS-----"): pemtype = "cms"
@@ -359,26 +354,68 @@ def get_pem_type(inputtext):
 
     return pemtype
     
-def is_binary(filename):
 
+def is_binary(filename):
     cmd = "file -b " + filename.decode('utf-8')
+    app.logger.info("is_binary():cmd: " + cmd)
     f = os.popen(cmd, 'r')
     if f:
         rs = f.read() 
-        app.logger.info("is_binary --> " + rs)
-        if rs.find('data') != -1:
-            app.logger.info('is binary!')
+        app.logger.info("is_binary():read(): " + rs)
+        if rs.startswith("DER Encoded Certificate request"):
+            app.logger.info('is binary csr file')
             return True
-        
-        if rs.startswith("PEM") or rs.find("text") or rs.find("ASCII"):
-            return False
-        elif rs.startswith("Certificate"):
+        if rs.startswith("DER Encoded Key Pair"):
+            app.logger.info('is binary private key file')
             return True
 
-    app.logger.info('is text')
+        if rs.startswith("DER Encoded"):
+            app.logger.info('is binary/DER-Encoded file')
+            return True
+
+        if rs.endswith("data") or rs.startswith("data"):
+            app.logger.info('is binary data file')
+            return True
+
+        ####
+        #### if unknown and not ascii text and not binary ==> crl.der
+        ####
     return False
 
 
+
+def get_pki_file_type(filename):
+
+    #cmd = "file -b " + filename.decode('utf-8')
+    cmd = "file -b " + filename
+    f = os.popen(cmd, 'r')
+    if f:
+        rs = f.read() 
+
+        app.logger.info("get_pki_file_type: " + rs)
+        
+        if rs.endswith("PEM certificate"):
+            return "crt"
+        elif rs.endswith("PEM certificate request"):
+            return "csr"
+        elif rs.endswith("ASCII text") and filename.endswith(".crl"):
+            return "crl"
+        elif rs.endswith("ASCII text") :
+            return "text"
+    ##BINARY
+        elif rs.startswith("DER Encoded Certificate request"):
+            return "csr"
+        elif rs.startswith("Certificate"):
+            return "crt"
+        elif rs.startswith("Certificate"):
+            return "crt"
+        elif rs.startswith("DER Encoded Key Pair"):
+            return "rsaprikey"
+        elif rs.startswith("data"):
+            return "data"
+
+    
+    return False
 
 
 @blueprint.route('/analyzer-pem.html', methods=['GET', 'POST'])
@@ -388,10 +425,14 @@ def analyzer_pem():
     result = None
     inputtext = intext = intext_pem = None
     errmsg = errtype = None
-    inFormat = True
+    dataType = True
     inType = "text" ##file
     fileMode = "text" ##bin
-    #for dict in PEM_TYPE_LIST: app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
+    informArg = "PEM"
+    asn1mode = False
+    
+    ###DEBUG
+    ##for dict in PEM_TYPE_LIST: app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
     
     if request.method == 'POST':
 
@@ -403,9 +444,18 @@ def analyzer_pem():
         inputfile = request.form.get("inputfile", None)
         action = request.form.get("action") ##analyze
 
+        if action =="clear":
+            return render_template( '/analyzer-pem.html', result=None, errmsg=None, errtype=None, inputtext="")    
+
+        asn1mode_checked = request.form.get("asn1mode")
+        if asn1mode_checked:
+            asn1mode = True
+            app.logger.info("asn1 mode: True")
+        else:
+            app.logger.info("asn1 mode: False")
+        
         f = request.files.get('inputfile', None)
-        
-        
+                
         if action: app.logger.info("ation ==>  " + action)
         app.logger.info("inputtext ==>  " + inputtext)
 
@@ -413,35 +463,51 @@ def analyzer_pem():
 
    
         if inputtext and inputtext.startswith("-----BEGIN"):
+            inType = "text"
             intext_pem = inputtext
             app.logger.info("** intext ==> " + intext_pem)
 
-            inFormat = get_pem_type(inputtext)
-            app.logger.info("input format(Text): " + inFormat)
+            dataType = get_pem_type(inputtext)
+            app.logger.info("input format(PEM TEXT): " + dataType)
 
         elif f:
             infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
             f.save(infile)
-            intype = "file"
+            inType = "file"
 
-            inFormat = request.form.get("informat")
+            formInFormat = request.form.get("informat")
             fileMode = "text"
 
-            #mime = mimetypes.guess_type(infile)
+            app.logger.info("input format(FILE): " + infile)
 
-            if is_binary(infile.encode('utf-8')):
+            if True == is_binary(infile.encode('utf-8')):
                 fileMode = "binary"
+                inForm = "DER"
             else:
                 fileMode = "text"
+                inForm = "PEM" ## SMIME??
 
             app.logger.info( "Filename: " + infile)
-            ##ßapp.logger.info( "mime types: " + mime)
-            app.logger.info( "File Mode, inFormat: " + inFormat + ", fileMode: " + fileMode)
+            app.logger.info( "File Parsing: " + formInFormat + ", inType: " + inType + ", fileMode: " + fileMode + ", inForm: " + inForm)
 
             if fileMode == "text":
                 inputtext = read_pem_file(infile)
-                inFormat = get_pem_type(inputtext)
-                app.logger.info( "TEXT MODE: File Mode, inFormat: " + inFormat + ", fileMode: " + fileMode)
+                
+                dataType = get_pem_type(inputtext)
+                if not dataType:
+                    dataType = formInFormat
+
+                inType = "text" ##로 변경
+                app.logger.info( "TEXT FILE MODE: format: " + dataType + ", fmode: " + fileMode + ", inType(changed): " + inType )
+            
+            elif fileMode =="binary":
+                if "data" == get_pki_file_type(infile):
+                    dataType = formInFormat
+                else:
+                    #바이너리, crt. csr 아닌 경우는 사용자 입력에 의존한다. 
+                    dataType = formInFormat
+                app.logger.info( "BINARY FILE MODE" + ", dataType: " + dataType + ", fileMode: " + fileMode)
+                app.logger.info( "BINARY FILE MODE" + ", inType: " + inType)
 
         else: 
             errtype = "error"
@@ -452,123 +518,180 @@ def analyzer_pem():
         
         
 #Certificate
-        #if textmode and inputtext.startswith("-----BEGIN CERTIFICATE-----"):
-        if inFormat == "crt":
-            if inType == "file":
-                cmd = "openssl x509 -text -noout -inform DER -in " + infile
-                app.logger.info("binary command : " + cmd)
-                pemstr = run_cmd(cmd)
+        try:
+            #if textmode and inputtext.startswith("-----BEGIN CERTIFICATE-----"):
+            if asn1mode == True:
+                if inType == "file":
+                    cmd = "openssl asn1parse -inform %s -in %s " % (inForm, infile)
+                elif inType == "text":
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"asn1parse", b"-inform", b"PEM")
+
+                result = pemstr.decode('utf-8')
+                app.logger.info("Result sring: " + result)
+
+                if result.startswith("Error") or result.startswith("error"):
+                    errtype="error"
+                    errmsg="invalid asn.1 message"
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                
+                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            elif dataType == "crt":
+                
+                if inType == "file":
+                    cmd = "openssl x509 -text -noout -inform DER -in %s " % infile
+                    app.logger.info("binary command : " + cmd)
+                    pemstr = run_cmd(cmd)
+                elif inType == "text":
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"x509", b"-text", b"-noout", b"-inform", b"PEM")
+                
+                result = pemstr.decode('utf-8')
+                app.logger.info("Result sring: " + result)
+                
+                if not result.startswith("Certificate:"):
+                    errtype, errmsg = "error", "error: Invalid X509 Certificate"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            #elif textmode and inputtext.startswith("-----BEGIN CERTIFICATE REQUEST-----"):
+            elif dataType == "csr":
+                if inType == "file":
+                    cmd = "openssl req -text -noout -inform DER -in " + infile
+                    app.cmd = "openssl req -text -noout -inform DER -in " + infile
+                    app.logger.info("binary command for Certificate Signing Request: " + cmd)
+                    pemstr = run_cmd(cmd)
+                    
+                else:
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"req", b"-text", b"-noout", b"-inform", b"PEM")
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("Certificate Request:"):
+                    errmsg = "error: invalid CSR"
+                    app.logger.info(errmsg)
+                
+            ##openssl rsa -in test.pub -text -noout -pubin
+            #elif inputtext.startswith("-----BEGIN PUBLIC KEY-----"):
+            elif dataType == "rsapubkey":
+                if inType == "file":
+                    cmd = "openssl ras -pubin -noout -text -inform DER -in " + infile
+                    app.logger.info("binary command for RSA PUBKEY : " + cmd)
+                    pemstr = run_cmd(cmd)
+                else:
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"rsa", b"-pubin", b"-text", b"-noout", b"-inform", b"PEM")
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("RSA Public-Key:"):
+                    errtype = "error"
+                    errmsg = "error: invalid RSA public key" 
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            #elif inputtext.startswith("-----BEGIN RSA PRIVATE KEY-----"):
+            elif dataType == "rsaprikey":
+
+                if inType == "file":
+                    cmd = "openssl rsa -text -noout -inform DER -in " + infile
+                    app.logger.info("binary command for RSA Private Key : " + cmd)
+                    pemstr = run_cmd(cmd)
+                else:
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"rsa", b"-text", b"-noout", b"-inform", b"PEM")
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("RSA Private-Key:"):
+                    errtype = "error"
+                    errmsg = "error: invalid RSA Private Key" 
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            #elif inputtext.startswith("-----BEGIN ENCRYPTED PRIVATE KEY-----"):
+            elif dataType == "enc_rsaprikey":
+                inpass = request.form.get("inpass", None)
+                if not inpass:
+                    errtype = "inpass"
+                    errmsg = "error: no input password"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                else:
+                    passin_arg = "pass:" + inpass
+
+                if inType == "file":
+                    cmd = "openssl rsa -text -noout -inform DER -in " + infile + "  -passin " + passin_arg
+                    app.logger.info("binary command for Encrypted RSA Private Key : " + cmd)
+                    pemstr = run_cmd(cmd)
+                else: 
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"rsa", b"-text", b"-noout", b"-inform", b"PEM", b"-passin", passin_arg)
+
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("RSA Private-Key:"):
+                    errtype = "error"
+                    errmsg = "error: invalid encrypted RSA Private Key"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+            
+            ##ermind@rbrowser:/tmp$ openssl pkcs7 -in test.p7b -text  -print -noout
+            #elif inputtext.startswith("-----BEGIN PKCS7-----"):
+            elif dataType == "pkcs7":
+                if inType == "file":
+                    cmd = "openssl pkcs7 -text -noout -print -inform DER -in " + infile
+                    app.logger.info("binary file parsing, type=PKCS7 : " + cmd)
+                    pemstr = run_cmd(cmd)
+                else: 
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"pkcs7", b"-text", b"-noout", b"-inform", b"PEM", b"-print")
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("PKCS7:"):
+                    errtype = "error"
+                    errmsg = "error: invalid pkcs7 message"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+            
+            ##openssl crl -in test.crl -text -noout
+            #elif inputtext.startswith("-----BEGIN X509 CRL-----"):
+            elif dataType == "crl":
+                if inType == "file":
+                    cmd = "openssl crl  -in " + infile + " -text -noout -inform DER"
+                    app.logger.info("binary file parsing, type=X509 CRL : " + cmd)
+                    pemstr = run_cmd(cmd)
+                else:
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"crl", b"-text", b"-noout", b"-inform", b"PEM")
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("Certificate Revocation List (CRL):"):
+                    errtype = "error"
+                    errmsg = "error: invalid certificate revocation list"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            ##ppenssl cms -cmsout -in plain.txt.cms -print -noout -inform PEM
+            #elif inputtext.startswith("-----BEGIN CMS-----"):
+            elif dataType == "cms":
+                if inType == "file":
+                    cmd = "openssl cms -cmsout -print -inform DER -noout -in " + infile
+                    app.logger.info("binary file parsing, type=X509 CRL : " + cmd)
+                    pemstr = run_cmd(cmd)
+                else:
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"cms", b"-cmsout", b"-print", b"-noout", b"-inform", b"PEM")
+
+                result = pemstr.decode('utf-8')
+                app.logger.info(result)
+                
+                if not result.startswith("CMS_ContentInfo:"):
+                    errtype = "error"
+                    errmsg = "error: invalid CMS(Cryptographic Message Syntax) message"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
             else:
-                pemstr = do_openssl(inputtext.encode('utf-8'), b"x509", b"-text", b"-noout", b"-inform", b"PEM")
-            result = pemstr.decode('utf-8')
-
-            app.logger.info("Result sring: " + result)
-            
-            if not result.startswith("Certificate:"):
-                errtype = "error"
-                errmsg = "error: invalid certificate"
-                app.logger.info(errmsg)
+                flash("error: no input data")
                 return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
-
-        #elif textmode and inputtext.startswith("-----BEGIN CERTIFICATE REQUEST-----"):
-        elif inFormat == "csr":
-            pemstr = do_openssl(inputtext.encode('utf-8'), b"req", b"-text", b"-noout", b"-inform", b"PEM")
-            result = pemstr.decode('utf-8')
-            
-            if not result.startswith("Certificate Request:"):
-                errmsg = "error: invalid certificate request"
-                app.logger.info(errmsg)
-            
-        ##openssl rsa -in test.pub -text -noout -pubin
-        #elif inputtext.startswith("-----BEGIN PUBLIC KEY-----"):
-        elif inFormat == "rsapubkey":
-            pemstr = do_openssl(inputtext.encode('utf-8'), b"rsa", b"-pubin", b"-text", b"-noout", b"-inform", b"PEM")
-            result = pemstr.decode('utf-8')
-            
-            if not result.startswith("RSA Public-Key:"):
-                errtype = "error"
-                errmsg = "error: invalid RSA public key" 
-                app.logger.info(errmsg)
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
-
-        #elif inputtext.startswith("-----BEGIN RSA PRIVATE KEY-----"):
-        elif inFormat == "rsaprikey":
-            pemstr = do_openssl(inputtext.encode('utf-8'), b"rsa", b"-text", b"-noout", b"-inform", b"PEM")
-            result = pemstr.decode('utf-8')
-            
-            if not result.startswith("RSA Private-Key:"):
-                errtype = "error"
-                errmsg = "error: invalid private key" 
-                app.logger.info(errmsg)
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
-
-        #elif inputtext.startswith("-----BEGIN ENCRYPTED PRIVATE KEY-----"):
-        elif inFormat == "enc_rsaprikey":
-            inpass = request.form.get("inpass", None)
-            if not inpass:
-                errtype = "inpass"
-                errmsg = "error: no input password"
-                app.logger.info(errmsg)
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
-            else:
-                passin_arg = "pass:" + inpass
-
-            pemstr = do_openssl(inputtext.encode('utf-8'), b"rsa", b"-text", b"-noout", b"-inform", b"PEM", b"-passin", passin_arg)
-            result = pemstr.decode('utf-8')
-            
-            if not result.startswith("RSA Private-Key:"):
-                errtype = "error"
-                errmsg = "error: invalid encrypted private key"
-                app.logger.info(errmsg)
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+        except:
+            flash("Exception: Invalid data or type...")
+            errtype = "error"
+            errmsg = "error: Fail to parse data, Please check Data/File valid or file type"
+            return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype) 
         
-        ##ermind@rbrowser:/tmp$ openssl pkcs7 -in test.p7b -text  -print -noout
-        #elif inputtext.startswith("-----BEGIN PKCS7-----"):
-        elif inFormat == "pkcs7":
-            pemstr = do_openssl(inputtext.encode('utf-8'), b"pkcs7", b"-text", b"-noout", b"-inform", b"PEM", b"-print")
-            result = pemstr.decode('utf-8')
-            
-            if not result.startswith("PKCS7:"):
-                errtype = "error"
-                errmsg = "error: invalid pkcs7 message"
-                app.logger.info(errmsg)
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
-        
-        ##openssl crl -in test.crl -text -noout
-        #elif inputtext.startswith("-----BEGIN X509 CRL-----"):
-        elif inFormat == "crl":
-
-            pemstr = do_openssl(inputtext.encode('utf-8'), b"crl", b"-text", b"-noout", b"-inform", b"PEM")
-            result = pemstr.decode('utf-8')
-            
-            if not result.startswith("Certificate Revocation List (CRL):"):
-                errtype = "error"
-                errmsg = "error: invalid certificate revocation list"
-                app.logger.info(errmsg)
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
-
-        ##ppenssl cms -cmsout -in plain.txt.cms -print -noout -inform PEM
-        #elif inputtext.startswith("-----BEGIN CMS-----"):
-        elif inFormat == "cms":
-            pemstr = do_openssl(inputtext.encode('utf-8'), b"cms", b"-cmsout", b"-print", b"-noout", b"-inform", b"PEM")
-            result = pemstr.decode('utf-8')
-            app.logger.info(result)
-            
-            if not result.startswith("CMS_ContentInfo:"):
-                errtype = "error"
-                errmsg = "error: Invalid CMS(Cryptographic Message Syntax)"
-                app.logger.info(errmsg)
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
-
-        else:
-            flash("error: no input data")
-            return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
-
-        #input1 = intext_pem.encode()
-        #cert_pem = do_openssl(input1, b"x509", b"-text", b"-noout")
-        #result = pemstr.decode('utf-8')
-        
-        return render_template( '/analyzer-pem.html', result=result, inputtext=inputtext)    
+        return render_template( '/analyzer-pem.html', result=result)    
 
     ##GET    
     return render_template( '/analyzer-pem.html', result=result)
@@ -627,8 +750,67 @@ def cipher_encrypt():
 
     flash("GET cipher: encrypt file")
     
-
     return render_template( '/cipher-encrypt.html')
+
+
+
+@blueprint.route('/generator-digest.html', methods=['GET', 'POST'])
+def generator_digest():
+
+    app.logger.info("Generate Digest >>>>> ")
+        
+    if request.method == 'POST':
+
+        
+        inputtext = request.form.get('inputtext', None)
+        dgst_alg = request.form.get("dgst_alg", None)
+        action = request.form.get("action")
+        hmac_checked = request.form.get("hmac_checked")
+        
+
+        if not dgst_alg:
+            dgst_alg = "sha256"
+        
+        ##dgst_alg = dgst_alg.decode('utf-8')
+
+        app.logger.info("action ==> " + action)
+        app.logger.info("dgst_alt ==> " + dgst_alg)
+        app.logger.info("inputtext ==> " + inputtext)
+
+        try:
+            if action == "encode":
+                alg="-" + dgst_alg
+                app.logger.info("alg ==> " + alg)
+                
+                if hmac_checked:
+                    inpass = request.form.get('inpass')
+                    if not inpass:
+                        errtype="inpass"
+                        errmsg="invalid passphrase"
+                        return render_template( '/generator-digest.html', errtype=errtype)
+                    
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"dgst", b"-hmac", inpass)
+                else:
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"dgst", alg)
+                    
+                result = pemstr.decode('utf-8')
+                app.logger.info("result ==> " + result)
+            elif action == "decode":
+                
+                #print('command: ', cmd,  file=sys.stderr)
+                result = "not yet"
+            else:
+                flash("error: invalid command!")
+                result ="error"
+                
+            
+            return render_template( '/generator-digest.html', result=result)
+        except:
+            ##error
+            result = "error"
+            return render_template( '/generator-digest.html')
+        
+    return render_template( '/generator-digest.html')
 
 
 @blueprint.route('/logout')
