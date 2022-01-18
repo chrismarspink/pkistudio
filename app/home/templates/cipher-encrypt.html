@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Encrypt/Decrypt Analyzer {% endblock %} 
+{% block title %} Encrypt/Decrypt {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -49,39 +49,39 @@
 						</div>
 						<div class="card-body">
 							<form method="post" action="" enctype="multipart/form-data">
-							<div class="form-group">
+							
+								
+
 								
 								<div class="form-group">
-									<div class="form-group">
-									    <label for="exampleFormControlFile1">Input File</label>
-									    <input type="file" name="plainfile" class="form-control-file" id="exampleFormControlFile1">
-								    </div>
+								    <label for="exampleFormControlFile1">Input File</label>
+								    <input type="file" name="plainfile" class="form-control-file" id="exampleFormControlFile1">
 								</div>
-
+								
 								<div class="form-group">
-									<div class="form-group">
-										<label for="defaultSelect">Select encryption algorithm</label>
-										<select class="form-control form-control" name="enc_alg" id="defaultSelect">
-											<option>aes128</option>
-											<option>aes192</option>
-											<option>aes256</option>
-											<option>aes-128-cbc</option>
-											<option>aes-192-cbc</option>
-											<option>aes-256-cbc</option>
-											<option>aes-128-ecb</option>
-											<option>aes-192-ecb</option>
-											<option>aes-256-ecb</option>
-										</select>
-									</div>
+									<label for="defaultSelect">Select encryption algorithm</label>
+									<select class="form-control form-control" name="enc_alg" id="defaultSelect">
+										<option>aes128</option>
+										<option>aes192</option>
+										<option>aes256</option>
+										<option>aes-128-cbc</option>
+										<option>aes-192-cbc</option>
+										<option>aes-256-cbc</option>
+										<option>aes-128-ecb</option>
+										<option>aes-192-ecb</option>
+										<option>aes-256-ecb</option>
+									</select>
+								</div>
 
 								<div class="form-group">
 									<label for="password">Input password</label>
 									<input type="password" class="form-control" id="password" placeholder="Password">
 								</div>
+
 								<div class="form-group">
 									<label for="password">Confirm Password</label>
 									<input type="password" class="form-control" id="password" placeholder="Password">
-									<span class="help-block"><p>form-group has-error neeeeed to make it RED.</p></span>  
+									
 								</div>
 
 
@@ -99,7 +99,7 @@
 									</p>
 								</div>
 
-							</div>
+							
 						    </form>
 						</div>
 					</div>

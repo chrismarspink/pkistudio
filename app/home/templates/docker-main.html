@@ -1,0 +1,231 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Docker API Test {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">Docker SDK Test Page</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Analyzer</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Docker SDK Demo</a>
+					</li>
+				</ul>
+				
+			</div>
+
+			{% for message in get_flashed_messages() %}
+ 			<div class="alert alert-warning">
+ 				<button type="button" class="close" data-dismiss="alert">&times;</button>
+ 					{{ message }}
+ 			</div>
+ 			{% endfor %}
+
+
+
+			<div class="row">
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">도커 컨테이너</h4>
+						</div>
+
+						<div class="card-body n-5">
+							<form method="post" action="" enctype="multipart/form-data">	
+								<div class="form-group ">
+								
+									<div class="card-sub">									
+										이고슨 도커 컨데이터 리스트...
+									</div>
+									<table class="table mt-3">
+										<thead>
+											<tr>
+												<th scope="col">Name</th>
+												<th scope="col">Status</th>
+												<th scope="col">Action</th>
+												<th scope="col">Image</th>
+												<th scope="col">Created</th>
+												<th scope="col">...</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for container in containerList %}
+											<tr>
+												<td>{{container.name}}</td>
+												<td>{{container.status}}</td>
+												<td>
+													<button class="btn btn-secondary btn-xs" type="submit"  name="logs" value="{{container.id}}" disabled>
+														logs
+													</button>
+												</td>
+												<td>{{container.id}}</td>
+												<td>{{container.attrs['Created']}}</td>
+												<td>이거저거..</td>
+											</tr>
+											{% endfor %}						
+										</tbody>
+									</table>
+								
+									{% for container in containerList %}
+										<p>Logs of {{container.name}}</p>
+										<textarea class="form-control" id="pem-data" rows="10" name="logs">{{container.logs().decode()}}</textarea>
+									{% endfor %}
+								</div>
+							</form>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">이거슨 콘피그</h4>
+						</div>
+
+						<div class="card-body n-5">
+							<form method="post" action="" enctype="multipart/form-data">	
+								<div class="form-group ">
+									{%if configs %}
+										{% for config in configs %}
+											<p>Config ID: {{ config.id }}</p>
+										{% endfor %}
+									{%else%}
+										<p>읍네, 읍서...</p>
+									{%endif%}
+								</div>
+							</form>
+						</div>
+					</div>
+
+
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">도커 이미지</h4>
+						</div>
+
+						<div class="card-body n-5">
+							<form method="post" action="" enctype="multipart/form-data">	
+								<div class="form-group">
+									<div class="card-sub">									
+										이고슨 도커 이미지 리스트...
+									</div>
+									<table class="table mt-3">
+										<thead>
+											<tr>
+												<th scope="col">ID</th>
+												<th scope="col">Tags</th>
+												<th scope="col">Size</th>
+												<th scope="col">Created</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for image in images %}
+											<tr>
+												<td>{{image.id}}</td>
+												<td>{{image.tags}}</td>
+												<td>{{image.attrs['Size']}}</td>
+												<td>{{image.attrs['Created']}}</td>
+											</tr>
+											{% endfor %}						
+										</tbody>
+									</table>
+								</div>
+
+								<div class="form-group">
+									<ul class="nav nav-pills nav-secondary" id="pills-tab" role="tablist">
+										<li class="nav-item">
+											<a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#image_info" role="tab" aria-controls="pills-home" aria-selected="false">이미지 정보</a>
+										</li>
+										<li class="nav-item">
+											<a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#image_hist" role="tab" aria-controls="pills-profile" aria-selected="true">히스토리</a>
+										</li>
+										
+									</ul>
+
+									<div class="tab-content" id="pills-tabContent">
+										<div class="tab-pane fade show active" id="image_info" role="tabpanel" aria-labelledby="pills-home-tab">
+											{% for image in images %}
+												<p>Image id: {{ image.id }}</p>
+												<p>Tags: {{ image.tags }}</p>
+												<p>Short_id: {{ image.short_id }}</p>
+												<p>Attrs: {{ image.attrs }}</p>
+											{% endfor %}
+										</div>
+
+										<div class="tab-pane fade" id="image_hist" role="tabpanel" aria-labelledby="pills-profile-tab" name="infile-tab">
+											
+											{% for image in images %}
+											<p>History</p>
+												{% for item in image.history() %}
+										
+													{% for key in item %}
+													<p>{{ key }} : {{ item[key]}}</p>
+													{% endfor %}
+
+												{% endfor %}
+
+											{% endfor %}
+										</div>
+									</div>
+								</div>	
+
+																
+								
+							</form>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Result</h4>
+							
+						</div>
+						<div class="card-body">
+							<p class="demo">
+								<div class="form-group">
+
+									{% if errtype == 'error' %}
+										<p class="text-danger">{{ errmsg }}</p>
+									{% endif %}
+
+								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}
+									{% endautoescape %}
+									</textarea>
+							    </div>
+							</p>
+						</div>
+					</div>
+				</div>
+				
+				
+			</div>
+		</div>
+	</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+
+{% endblock javascripts %}

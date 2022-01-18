@@ -22,6 +22,7 @@ from app.base.util import verify_pass
 
 import sys
 import mimetypes
+import tempfile
 
 
 ########## Crypto Module
@@ -46,11 +47,24 @@ import re, os, time, string, random
 from io import StringIO
 from flask import Response
 
+##pyjks 모듈: JKS(java key store) 파일 파싱
+import jks , textwrap
+
 import app
 import logging
 import logging.handlers
 
 from config import config_dict, config
+
+
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+
+
+##########
+## DOCKER 
+##########
+import docker
 
 Version="0.1"
 Version_Date="2022-01-10"
@@ -90,8 +104,6 @@ def do_openssl(pem, *args):
 ##########
 
 
-
-
 def run_cmd(cmd, input=None):
     process = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate(input=input)
@@ -106,7 +118,6 @@ def route_default():
     return redirect(url_for('base_blueprint.login'))
 
 ## Login & Registration
-
 @blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm(request.form)
@@ -242,6 +253,37 @@ def generator_privatekey():
     return render_template( '/generator-privatekey.html', ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
 
 
+@blueprint.route('/docker-main.html', methods=['GET', 'POST'])
+def docker_main():
+
+    client = docker.from_env()
+    result = "GET"
+    containerList = []
+
+    #for container in client.containers.list():
+    for container in client.containers.list():
+        app.logger.info("ID: " + container.id)
+        containerList.append(container.id)
+        
+
+    images =  client.images.list()
+    for image in images:
+        app.logger.info("ImageID: " + container.id)
+
+    configs =  client.configs.list()
+    for config in configs:
+        app.logger.info("Configs: " + config.id)
+
+
+
+    if request.method == 'POST':
+        flash("POST Docker main...")
+        return render_template( '/docker-main.html', containerList = client.containers.list())    
+    
+    flash('GET Docker-Main') 
+    return render_template( '/docker-main.html', containerList=client.containers.list(), images=images, configs=configs)
+
+
 @blueprint.route('/analyzer-pkcs12.html', methods=['GET', 'POST'])
 def analyzer_pkcs12():
 
@@ -289,6 +331,73 @@ def analyzer_pkcs12():
     
     flash('GET') 
     return render_template( '/analyzer-pkcs12.html', result=result)
+
+
+
+def generate_pem_format_string(der_bytes, types):
+    header = "-----BEGIN %s-----\r\n" % types
+    body = "\r\n".join(textwrap.wrap(base64.b64encode(der_bytes).decode('ascii'), 64))
+    footer = "\r\n-----END %s-----\r\n" % types
+    return header + body + footer
+
+@blueprint.route('/analyzer-jks.html', methods=['GET', 'POST'])
+def analyzer_jks():
+
+    userkey_pem = usercert_pem = cacert_pem = ""
+    inpass = None
+    errtype = None
+    result = "GET"
+
+    if request.method == 'POST':
+        flash('POST')          
+        
+        inpass = request.form.get("inpass", None)
+        if not inpass:
+            errtype = "inpass"
+            return render_template( '/analyzer-jks.html', errtype=errtype)
+
+        app.logger.info("inpass: %s" % inpass)
+        f = request.files.get('inputfile', None)
+        if not f:
+            print("file not found", file=sys.stderr)
+            return render_template( '/analyzer-jks.html', result=result)
+            
+        infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
+        f.save(infile)
+        
+        app.logger.info("infile: %s" % infile)
+        
+        ks = jks.KeyStore.load(infile, inpass)
+        
+
+        for alias, pk in ks.private_keys.items():
+            app.logger.info("Private key: %s" % pk.alias)
+            if pk.algorithm_oid == jks.util.RSA_ENCRYPTION_OID:
+                userkey_pem = generate_pem_format_string(pk.pkey, "RSA PRIVATE KEY")
+            else:
+                userkey_pem = generate_pem_format_string(pk.pkey_pkcs8, "PRIVATE KEY")
+
+            for c in pk.cert_chain:
+                #app.logger.info("Certicicate Chain: %s" % c.alias)
+                usercert_pem += generate_pem_format_string(c[1], "CERTIFICATE")
+            
+
+        for alias, c in ks.certs.items():
+            app.logger.info("Certificate: %s" % c.alias)
+            usercert_pem = generate_pem_format_string(c.cert, "CERTIFICATE")
+            
+        
+        for alias, sk in ks.secret_keys.items():
+            app.logger.info("Secret key: %s" % sk.alias)
+            app.logger.info("  Algorithm: %s" % sk.algorithm)
+            app.logger.info("  Key size: %d bits" % sk.key_size)
+            app.logger.info("  Key: %s" % "".join("{:02x}".format(b) for b in bytearray(sk.key)))
+        
+        
+        return render_template( '/analyzer-jks.html', userkey_pem=userkey_pem, usercert_pem=usercert_pem, cacert_pem = cacert_pem)    
+    
+    flash('GET') 
+    return render_template( '/analyzer-jks.html', result=result)    
 
 PEM_TYPE_LIST = [
     { 'type': 'rsapubkey',  'tag': 'RSA PUBLIC KEY', 'desc': 'RSA Public Key' },
@@ -696,6 +805,9 @@ def analyzer_pem():
     ##GET    
     return render_template( '/analyzer-pem.html', result=result)
 
+#######################
+## ENCRYPT 
+#######################
 @blueprint.route('/cipher-encrypt.html', methods=['GET', 'POST'])
 def cipher_encrypt():
         
@@ -719,7 +831,7 @@ def cipher_encrypt():
             
             cipher = request.form.get("cipher")
             if cipher == "enc":
-                #cmd = 'openssl enc -aes-256-cbc  -in {in} -out {out} -pass pass:1234'.format(in=infile, out=outfile)
+                
                 outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + enc_alg)
                 cmd = 'openssl enc -%s  -in \"%s\" -out \"%s\" -pass pass:1234' % (enc_alg, infile, outfile)
                 print('form:cipher: enc', file=sys.stderr)
@@ -752,6 +864,136 @@ def cipher_encrypt():
     
     return render_template( '/cipher-encrypt.html')
 
+
+def RSA_encrypt(message, pub_key):
+    #RSA encryption protocol according to PKCS#1 OAEP
+    #cipher = PKCS1_OAEP.new(pub_key)
+    return cipher.encrypt(message)
+
+
+#######################
+# Role: Encrypt with RSA Public Key
+# in: inputtext
+# public key from : X509 Certificate 
+#######################
+@blueprint.route('/cipher-pubkey_encrypt.html', methods=['GET', 'POST'])
+def cipher_pubkey_encrypt():
+
+    infile = None
+    cmd = ""
+    app.logger.info(">>> cipher: public key encrypt file")
+
+    if request.method == 'POST':
+        
+        f = request.files.get('inputfile', None)
+        if not f:
+            errtype, errmsg = "fileerror", "no input file"
+            return render_template( '/cipher-pubkey_encrypt.html', errtype=errtype, errmsg=errmsg)
+
+        
+
+        inform = request.form.get("inform")
+        inpass = request.form.get("inpass", None)
+        action = request.form.get("action")
+
+        infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
+        f.save(infile)
+
+        kf = request.files.get("keyfile", None)
+        if not kf:
+            errtype, errmsg = "keyfileerror", "no certinput file"
+            return render_template( '/cipher-pubkey_encrypt.html', errtype=errtype, errmsg=errmsg)
+        keyfile = os.path.join(app_config.UPLOAD_DIR, kf.filename)
+        kf.save(keyfile)
+
+        app.logger.info("message file: " + infile)
+        app.logger.info("key     file: " + keyfile)
+        app.logger.info("key format  : " + inform)
+        app.logger.info("action      : " + action)
+            
+        if action == "enc":
+
+            outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "enc")
+          
+            #derstr = do_openssl(inputtext.encode('utf-8'), b"rsautl", b"-encrypt", b"-certin", b"-inkey", infile, b"-keyform", inform)
+            cmd = 'openssl rsautl -encrypt -pkcs -certin -in \"%s\" -inkey \"%s\" -out \"%s\"' % (infile, keyfile, outfile)
+            app.logger.info('enc.command: %s' % cmd)
+            
+        elif action == "dec":
+
+            outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "org")
+            extension = os.path.splitext(f.filename)[1][1:]
+
+            cmd = 'openssl rsautl -decrypt -in \"%s\" -out \"%s\" -inkey \"%s\" -keyform %s -pkcs' % (infile, outfile, keyfile, inform)
+
+            if inpass:
+                passin = " -passin pass:%s" % inpass
+                cmd = cmd + passin 
+            
+            app.logger.info('dec.command: %s' % cmd)
+            
+        else:
+            flash("error: invalid command!")
+            return render_template( '/cipher-pubkey_encrypt.html')
+
+        result = run_cmd(cmd)
+
+        outputtext = result
+
+        if os.path.isfile(outfile):
+            return send_file(outfile, as_attachment=True)
+
+        return render_template( '/cipher-pubkey_encrypt.html', outputtext=outputtext)
+
+   
+    return render_template( '/cipher-pubkey_encrypt.html')
+
+
+@blueprint.route('/generator-base64.html', methods=['GET', 'POST'])
+def generator_base64():
+
+    app.logger.info("Generate BASE64 >>>>> ")
+        
+    if request.method == 'POST':
+
+        
+        inputtext = request.form.get('inputtext', None)
+        alg = request.form.get("alg", "b64")
+        action = request.form.get("action")
+                
+        app.logger.info("action ==> " + action)
+        app.logger.info("alg ==> " + alg)
+        app.logger.info("inputtext ==> " + inputtext)
+
+        result = None
+
+        #ENCODE_FUNC = {"b64":base64.b64encode, "b16":base64.b16encode, "b32":base64.b32encode, "a85":base64.a85encode, "b85":base64.b85encode}
+        #DECODE_FUNC = {"b64":base64.b64decode, "b16":base64.b16decode, "b32":base64.b32decode, "a85":base64.a85decode, "b85":base64.b85decode}
+        ENCODE_FUNC = {"b64":base64.b64encode}
+        DECODE_FUNC = {"b64":base64.b64decode}
+
+        try:
+            if action == "encode":
+                pemstr = ENCODE_FUNC[alg](inputtext.encode('utf-8'))
+                result = pemstr.decode()
+                app.logger.info("result ==> " + result)
+                
+            elif action == "decode":
+                pemstr = DECODE_FUNC[alg](inputtext.encode('utf-8'))
+                #pemstr = DECODE_FUNC[alg](inputtext)
+                result = pemstr.decode('utf-8')
+                app.logger.info("result ==> " + result)
+            else:
+                flash("error: invalid command!")
+                result ="error"
+                
+            return render_template( '/generator-base64.html', result=result, inputtext=inputtext)
+        except:
+            ##error
+            result = "error"
+            return render_template( '/generator-base64.html', result=result)
+        
+    return render_template( '/generator-base64.html', result="input text")
 
 
 @blueprint.route('/generator-digest.html', methods=['GET', 'POST'])
@@ -792,7 +1034,7 @@ def generator_digest():
                     pemstr = do_openssl(inputtext.encode('utf-8'), b"dgst", b"-hmac", inpass)
                 else:
                     pemstr = do_openssl(inputtext.encode('utf-8'), b"dgst", alg)
-                    
+
                 result = pemstr.decode('utf-8')
                 app.logger.info("result ==> " + result)
             elif action == "decode":
@@ -803,6 +1045,8 @@ def generator_digest():
                 flash("error: invalid command!")
                 result ="error"
                 
+            if result.startswith('(stdin)='):
+                result = result.split('=')[1]
             
             return render_template( '/generator-digest.html', result=result)
         except:
