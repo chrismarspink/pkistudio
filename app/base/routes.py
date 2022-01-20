@@ -1263,10 +1263,10 @@ def generator_base64():
 
         result = None
 
-        #ENCODE_FUNC = {"b64":base64.b64encode, "b16":base64.b16encode, "b32":base64.b32encode, "a85":base64.a85encode, "b85":base64.b85encode}
-        #DECODE_FUNC = {"b64":base64.b64decode, "b16":base64.b16decode, "b32":base64.b32decode, "a85":base64.a85decode, "b85":base64.b85decode}
-        ENCODE_FUNC = {"b64":base64.b64encode}
-        DECODE_FUNC = {"b64":base64.b64decode}
+        ENCODE_FUNC = {"b64":base64.b64encode, "b16":base64.b16encode, "b32":base64.b32encode, "a85":base64.a85encode, "b85":base64.b85encode}
+        DECODE_FUNC = {"b64":base64.b64decode, "b16":base64.b16decode, "b32":base64.b32decode, "a85":base64.a85decode, "b85":base64.b85decode}
+        #ENCODE_FUNC = {"b64":base64.b64encode}
+        #DECODE_FUNC = {"b64":base64.b64decode}
 
         try:
             if action == "encode":
