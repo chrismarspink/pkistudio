@@ -70,12 +70,14 @@ import docker
 ## 쿠버네티스 SDK
 ##########
 #from kubernetes import client, config
+"""
 import kubernetes
 import kubernetes.config as konfig
 import kubernetes.client as klient
 
 from kubernetes import dynamic
 from kubernetes.client import api_client
+"""
 
 Version="0.1"
 Version_Date="2022-01-10"
@@ -409,7 +411,7 @@ def pkix_generate_keypair():
 
     return render_template( '/pkix-generate_keypair.html', env=env, ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
 
-
+"""
 @blueprint.route('/docker-main.html', methods=['GET', 'POST'])
 def docker_main():
 
@@ -526,7 +528,7 @@ def k8s_main():
     result=string
     
     return render_template( '/k8s-main.html', kConfigList=kConfigList, kNodeList=kNodeList, kDynamicNode=DynamicNode, result=result, kubeConfList=kubeConfList)
-
+"""
 
 @blueprint.route('/analyzer-pkcs12.html', methods=['GET', 'POST'])
 def analyzer_pkcs12():
