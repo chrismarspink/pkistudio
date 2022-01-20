@@ -542,7 +542,7 @@ def analyzer_pkcs12():
 
         f = request.files.get('pkcs12file', None)
         if not f:
-            print("file not found", file=sys.stderr)
+            app.logger.info("file not found")
             return render_template( '/analyzer-pkcs12.html', result=result)
             
         infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
@@ -603,7 +603,7 @@ def analyzer_jks():
         app.logger.info("inpass: %s" % inpass)
         f = request.files.get('inputfile', None)
         if not f:
-            print("file not found", file=sys.stderr)
+            app.logger.info("file not found")
             return render_template( '/analyzer-jks.html', result=result)
             
         infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
@@ -1039,8 +1039,8 @@ def cipher_encrypt():
                 
                 outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + enc_alg)
                 cmd = 'openssl enc -%s  -in \"%s\" -out \"%s\" -pass pass:1234' % (enc_alg, infile, outfile)
-                print('form:cipher: enc', file=sys.stderr)
-                print('command: ', cmd,  file=sys.stderr)
+                app.logger.info('form:cipher: enc')
+                app.logger.info('command: ', cmd)
 
             elif cipher == "dec":
                 outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "org")
@@ -1050,8 +1050,8 @@ def cipher_encrypt():
                 extension = os.path.splitext(f.filename)[1][1:]
 
                 cmd = 'openssl enc -d  -in \"%s\" -out \"%s\" -pass pass:1234 -%s' % (infile, outfile, extension)
-                print('form:cipher: dec', file=sys.stderr)
-                print('command: ', cmd,  file=sys.stderr)
+                app.logger.info('form:cipher: dec')
+                app.logger.info('command: ', cmd)
             else:
                 flash("error: invalid command!")
                 return render_template( '/cipher-encrypt.html')
