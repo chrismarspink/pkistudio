@@ -62,9 +62,20 @@ from Crypto.Cipher import PKCS1_OAEP
 
 
 ##########
-## DOCKER 
+## DOCKER SDK
 ##########
 import docker
+
+##########
+## 쿠버네티스 SDK
+##########
+#from kubernetes import client, config
+import kubernetes
+import kubernetes.config as konfig
+import kubernetes.client as klient
+
+from kubernetes import dynamic
+from kubernetes.client import api_client
 
 Version="0.1"
 Version_Date="2022-01-10"
@@ -87,11 +98,15 @@ aes_alg_list = ["aes128", "aes192", "aes256",
 
 rsabits = [1024, 2048, 4096, 8192, 16384]											
 
+env = {
+    "textarea_style" : "font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;white-space:pre-wrap"
+}
+
 app = Flask(__name__)
 
 def do_openssl(pem, *args):
     """
-    Run the command line openssl tool with the given arguments and write
+    Run the command line openssl tool with the `g`iven arguments and write
     the given PEM to its stdin.  Not safe for quotes.
     """
     proc = subprocess.Popen([b"openssl"] + list(args), stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -204,29 +219,173 @@ def analyzer_asn1():
     
     return render_template( '/analyzer-asn1.html', result=msg)
 
+def get_elliptic_curve_list():
+    curves=[]
+    for curve in crypto.get_elliptic_curves():
+        curves.append(curve.name)
 
+    return curves
 
 @blueprint.route('/generator-privatekey.html', methods=['GET', 'POST'])
 def generator_privatekey():
 
-    algorithm_name="RSA"
-    #alg="no algorithm selected..."
-    curves=[]
-    
+    #curves = curves = get_elliptic_curve_list()
 
-    for curve in crypto.get_elliptic_curves():
-        app.logger.info(curve.name)
-        curves.append(curve.name)
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == "generate":
+            keylen = request.form.get('keylen')
+
+            app.logger.info("action: %s, key length: %s" % (action, keylen))
+
+
+            key = crypto.PKey()
+            key.generate_key(crypto.TYPE_RSA, int(keylen))
+            priv_key = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
+            prikey_pem=priv_key.decode('utf-8')
+
+            #pubkey = key.get_pubkey()
+            pubkey_pem = crypto.dump_publickey(crypto.FILETYPE_PEM, key)
+            pubkey_pem = pubkey_pem.decode('utf-8')
+            
+
+            ## expect 'enc'
+            encopt_checked = request.form.get("encrypt_option")
+            if encopt_checked:
+                app.logger.info("generate_privatekey: encopt_checked: " + encopt_checked)
+
+            else:
+                app.logger.info("generate_privatekey: encopt_checked: disabled(None)")
 
         
-    if request.method == 'POST':
+            return render_template( '/generator-privatekey.html', 
+                env=env,
+                prikey_pem=prikey_pem, 
+                pubkey_pem=pubkey_pem, 
+                rsa_param=rsabits, 
+                aes_alg_list=aes_alg_list)
+    
+        elif action == "download_prikey":
+            prikey_pem = request.form.get("prikey_pem")
+            app.logger.info("private key(pem): %s", prikey_pem)
 
+            generator = (cell for row in prikey_pem for cell in row)
+
+            return Response(generator,
+                mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=rsa_privatekey.pem"})
+            #if os.path.isfile(outfile):
+            #    return send_file(outfile, as_attachment=True)
+
+            return render_template( '/generator-privatekey.html', env=env, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+
+        elif action == "download_pubkey":
+            pubkey_pem = request.form.get("pubkey_pem")
+            app.logger.info("publice key(pem): %s", pubkey_pem)
+            generator = (cell for row in pubkey_pem for cell in row)
+
+            return Response(generator,
+                mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=rsa_publickey.pem"})
+
+    return render_template( '/generator-privatekey.html', env=env, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+
+@blueprint.route('/generator-ecc_privatekey.html', methods=['GET', 'POST'])
+def generator_ecc_privatekey():
+
+    pubkey_pem = None
+    curves = get_elliptic_curve_list()
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+        keylen = request.form.get('keylen')
+
+        if action == "generate":
+        
+            app.logger.info("action: %s, key length: %s" % (action, keylen))
+
+            #key = crypto.PKey()
+            #key.generate_key(crypto.TYPE_RSA, int(keylen))
+            #priv_key = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
+            cmd = "openssl ecparam -genkey -name %s" % (keylen)
+            pemstr = run_cmd(cmd)
+            prikey_pem=pemstr.decode('utf-8')
+
+            app.logger.info("cmd: %s" % cmd)
+            app.logger.info("generated private key: %s" % pemstr)
+            #pubkey_pem = pubkey_pem.decode('utf-8')
+
+            pubkey_bytes = do_openssl(prikey_pem.encode(), b"pkey", b"-text_pub")
+            pubkey_pem = pubkey_bytes.decode()
+
+            ## expect 'enc'
+            encrypt_option = request.form.get("encrypt_option", None)
+            if encrypt_option:
+                inpass = request.form.get("inpass", None)
+                enc_alg = request.form.get("enc_alg", None)
+                app.logger.info("inpass:%s, alg:%s" % pemstr)
+                if not inpass:
+                    errtype="inpass"
+                    errmsg="Invalid passphrase"
+                    return render_template( '/generator-ecc_privatekey.html', 
+                        env=env, ecc_curves=curves, aes_alg_list=aes_alg_list, errtype=errtype, errmsg=errmsg)
+
+            else:
+                app.logger.info("generate_privatekey: encopt_checked: disabled(None)")
+
+        
+            return render_template( '/generator-ecc_privatekey.html', 
+                env=env,
+                prikey_pem=prikey_pem, 
+                pubkey_pem=pubkey_pem, 
+                ecc_curves=curves, 
+                aes_alg_list=aes_alg_list,
+                keylen=keylen)
+    
+        elif action == "download_prikey":
+            prikey_pem = request.form.get("prikey_pem")
+            filename="ecc_%s_privatekey.pem" % request.form.get("ecparam").strip()
+            app.logger.info("private key(pem): %s", prikey_pem)
+            app.logger.info("filename: [%s]", filename)
+
+            generator = (cell for row in prikey_pem for cell in row)
+
+            return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=%s" % filename})
+            #if os.path.isfile(outfile):
+            #    return send_file(outfile, as_attachment=True)
+
+            return render_template( '/generator-ecc_privatekey.html', env=env, ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+
+        elif action == "download_pubkey":
+            pubkey_pem = request.form.get("pubkey_pem")
+            app.logger.info("publice key(pem): %s", pubkey_pem)
+            
+            filename="ecc_%s_prublickey.pem" % request.form.get("ecparam").strip()
+
+            generator = (cell for row in pubkey_pem for cell in row)
+            return Response(generator,
+                mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=%s" % filename})
+
+    return render_template( '/generator-ecc_privatekey.html', env=env, ecc_curves=curves, aes_alg_list=aes_alg_list)
+
+
+
+@blueprint.route('/pkix-generate_keypair.html', methods=['GET', 'POST'])
+def pkix_generate_keypair():
+
+    algorithm_name="RSA"
+    curves =  get_elliptic_curve_list()
+
+    """for curve in crypto.get_elliptic_curves():
+        app.logger.info(curve.name)
+        curves.append(curve.name)
+    """
+
+    if request.method == 'POST':
         name = request.form.get('alg')
 
         if name == "RSA":
-            algorithm_name="ECDSA"
-        if name == "ECCDSA":
             algorithm_name="RSA"
+        if name == "ECCDSA":
+            algorithm_name="ECDSA"
 
         key = crypto.PKey()
         key.generate_key(crypto.TYPE_RSA, 1024)
@@ -246,11 +405,9 @@ def generator_privatekey():
         else:
             app.logger.info("generate_privatekey: encopt_checked: disabled(None)")
 
-    
-        return render_template( '/generator-privatekey.html', prikey_pem=prikey_pem, pubkey_pem=pubkey_pem, ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+        return render_template( '/pkix-generate_keypair.html', env=env, prikey_pem=prikey_pem, pubkey_pem=pubkey_pem, ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
 
-    message="GET"
-    return render_template( '/generator-privatekey.html', ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+    return render_template( '/pkix-generate_keypair.html', env=env, ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
 
 
 @blueprint.route('/docker-main.html', methods=['GET', 'POST'])
@@ -260,12 +417,10 @@ def docker_main():
     result = "GET"
     containerList = []
 
-    #for container in client.containers.list():
     for container in client.containers.list():
         app.logger.info("ID: " + container.id)
         containerList.append(container.id)
         
-
     images =  client.images.list()
     for image in images:
         app.logger.info("ImageID: " + container.id)
@@ -274,14 +429,103 @@ def docker_main():
     for config in configs:
         app.logger.info("Configs: " + config.id)
 
-
-
     if request.method == 'POST':
         flash("POST Docker main...")
         return render_template( '/docker-main.html', containerList = client.containers.list())    
     
     flash('GET Docker-Main') 
     return render_template( '/docker-main.html', containerList=client.containers.list(), images=images, configs=configs)
+
+
+@blueprint.route('/k8s-main.html', methods=['GET', 'POST'])
+def k8s_main():
+
+    kConfigList = {}
+    kNodeList = {}
+    konfig.load_kube_config()
+    result = "k8s"
+    app.logger.info("Supported APIs (* is preferred version):")
+    app.logger.info("%-40s %s" % ("core", ",".join(klient.CoreApi().get_api_versions().versions)))
+
+    ##Config
+    for api in klient.ApisApi().get_api_versions().groups:
+        versions = []
+        for v in api.versions:
+            name = ""
+            if v.version == api.preferred_version.version and len(api.versions) > 1:
+                name += "*"
+            name += v.version
+            versions.append(name)
+        
+        app.logger.info("%-40s %s" % (api.name, ",".join(versions)))
+        v = ",".join(versions)
+        kConfigList[api.name] = v
+
+
+    ##Instance
+    api_instance = klient.CoreV1Api()
+    body = {
+        "metadata": {
+            "labels": {
+                "foo": "bar",
+                "baz": None}
+        }
+    }
+    
+    node_list = api_instance.list_node()
+
+    app.logger.info("%s\t\t%s" % ("NAME", "LABELS"))
+
+    for node in node_list.items:
+        app_response = api_instance.patch_node(node.metadata.name, body)
+        kNodeList[node.metadata.name] = node.metadata.labels
+        app.logger.info("%s\t%s" % (node.metadata.name, node.metadata.labels))
+
+    
+    ##dynamic client
+    dclient = dynamic.DynamicClient( api_client.ApiClient(configuration=konfig.load_kube_config()) )
+    api = dclient.resources.get(api_version="v1", kind="Node")
+
+    DynamicNode = []
+    app.logger.info("%s\t\t%s\t\t%s" % ("NAME", "STATUS", "VERSION"))
+    
+    for item in api.get().items:
+        node = api.get(name=item.metadata.name)
+        
+        app.logger.info(
+            "%s\t%s\t\t%s\n"
+            % (
+                node.metadata.name,
+                node.status.conditions[3]["type"],
+                node.status.nodeInfo.kubeProxyVersion,
+            )
+
+        )
+        anode = {}
+        anode['name'] = node.metadata.name
+        anode['status'] = node.status.conditions[3]["type"]
+        anode['version'] = node.status.nodeInfo.kubeProxyVersion
+        DynamicNode.append(anode)
+
+
+    kubeConfList = []
+    kubeconfig = os.getenv('KUBECONFIG')
+    konfig.load_kube_config(kubeconfig)
+    v1 = klient.CoreV1Api()
+    app.logger.info("Listing pods with their IPs:")
+    ret = v1.list_pod_for_all_namespaces(watch=False)
+    string = ""
+    dic = {}
+    for i in ret.items:
+        string += "ip: %s</br>ns: %s</br>name: %s</br></br></br>" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+        dic["ip"] = i.status.pod_ip
+        dic["ns"] = i.metadata.namespace
+        dic["name"] = i.metadata.name
+        kubeConfList.append(dic)
+     
+    result=string
+    
+    return render_template( '/k8s-main.html', kConfigList=kConfigList, kNodeList=kNodeList, kDynamicNode=DynamicNode, result=result, kubeConfList=kubeConfList)
 
 
 @blueprint.route('/analyzer-pkcs12.html', methods=['GET', 'POST'])
@@ -399,46 +643,7 @@ def analyzer_jks():
     flash('GET') 
     return render_template( '/analyzer-jks.html', result=result)    
 
-PEM_TYPE_LIST = [
-    { 'type': 'rsapubkey',  'tag': 'RSA PUBLIC KEY', 'desc': 'RSA Public Key' },
-    { 'type': 'encrypted_rsapribkey', 
-                            'tag': 'RSA PRIVATE KEY', 'desc': 'Encrypted RSA Private Key', 'proc-type':'Proc-Type: 4,ENCRYPTED'},
-    { 'type': 'rsapribkey', 'tag': 'RSA PRIVATE KEY', 'desc': 'RSA Private Key'},
-    { 'type': 'crl',        'tag': 'X509 CRL', 'desc': 'X.509 CRL' },
-    { 'type': 'certificate','tag': 'CERTIFICATE', 'desc': 'X.509 Certificate' },
 
-    { 'type': 'csr',        'tag': 'CERTIFICATE REQUEST', 'desc': 'Certificate Request' },
-    { 'type': 'newcsr',     'tag': 'NEW CERTIFICATE REQUEST', 'desc': 'New Certificate Request' },
-
-    { 'type': 'pkcs7',      'tag': 'PKCS7', 'desc': 'PKCS7' },
-    { 'type': 'dsaprikey',  'tag': 'PRIVATE KEY', 'desc': 'DSA Private Key' },
-    { 'type': 'dsaprikey',  'tag': 'DSA PRIVATE KEY', 'desc': 'DSA Private Key' },
-
-    { 'type': 'ecprikey',   'tag': 'EC PRIVATE KEY', 'desc': 'EC PRIVATE KEY' },
-    { 'type': 'pkcs7',      'tag': 'PKCS7', 'desc': 'PKCS7' }
-]
-
-
-def get_pem_typeXXX(pemstr):
-    
-    app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
-    if pemstr and pemstr.startswith("-----BEGIN"):
-        for dict in PEM_TYPE_LIST:      
-            header = footer = proctype = None
-            header = "-----BEGIN " + dict['tag'] + "-----"
-            footer = "-----END " + dict['tag'] + "-----"
-            proctype = dict['proc-type']
-            line2 = pemstr.splitlines()[2]
-
-            app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
-
-            if pemstr.startswith(header)  and footer in pemstr:
-                if proctype and line2 == dict['proc-type']:
-                    return dict['type']
-                return dict['type']
-        return None
-    else:
-        return None
 
 def read_pem_file(filename):
     with open(filename, "r") as f:
@@ -836,6 +1041,7 @@ def cipher_encrypt():
                 cmd = 'openssl enc -%s  -in \"%s\" -out \"%s\" -pass pass:1234' % (enc_alg, infile, outfile)
                 print('form:cipher: enc', file=sys.stderr)
                 print('command: ', cmd,  file=sys.stderr)
+
             elif cipher == "dec":
                 outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "org")
                 ##extension is encryption alg name
@@ -857,12 +1063,11 @@ def cipher_encrypt():
 
         
         
-        flash("POST cmd: " + cmd)
-        return render_template( '/cipher-encrypt.html')
+        #flash("POST cmd: " + cmd)
+        return render_template( '/cipher-encrypt.html', aes_alg_list=aes_alg_list)
 
-    flash("GET cipher: encrypt file")
-    
-    return render_template( '/cipher-encrypt.html')
+        
+    return render_template( '/cipher-encrypt.html', aes_alg_list=aes_alg_list)
 
 
 def RSA_encrypt(message, pub_key):
@@ -949,13 +1154,102 @@ def cipher_pubkey_encrypt():
     return render_template( '/cipher-pubkey_encrypt.html')
 
 
+
+
+#######################
+# Role: Sign/Verify with RSA Public Key
+# in: inputtext
+# public key from : X509 Certificate / PrivateKey file
+#######################
+@blueprint.route('/sign-rsa.html', methods=['GET', 'POST'])
+def sign_rsa():
+
+    infile = hexdump = None
+    cmd = opts = ""
+    app.logger.info(">>> cipher: public key encrypt file")
+
+    if request.method == 'POST':
+        
+        f = request.files.get('inputfile', None)
+        if not f:
+            errtype, errmsg = "fileerror", "no input file"
+            return render_template( '/sign-rsa.html', errtype=errtype, errmsg=errmsg)
+
+
+        inform = request.form.get("inform")
+        inpass = request.form.get("inpass", None)
+        action = request.form.get("action")
+        verify_opt = request.form.get("verifyopt")
+
+        infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
+        f.save(infile)
+
+        kf = request.files.get("keyfile", None)
+        if not kf:
+            errtype, errmsg = "keyfileerror", "no certinput file"
+            return render_template( '/cipher-pubkey_encrypt.html', errtype=errtype, errmsg=errmsg)
+        keyfile = os.path.join(app_config.UPLOAD_DIR, kf.filename)
+        kf.save(keyfile)
+
+        app.logger.info("message file: " + infile)
+        app.logger.info("key     file: " + keyfile)
+        app.logger.info("key format  : " + inform)
+        app.logger.info("action      : " + action)
+        app.logger.info("verifyopt   : " + verify_opt)
+        
+            
+        if action == "sign":
+
+            outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "sign")
+            cmd = 'openssl rsautl -sign  -in \"%s\" -inkey \"%s\" -keyform %s -out \"%s\"' % (infile, keyfile, inform, outfile)
+            if inpass:
+                passin = " -passin pass:%s" % inpass
+                cmd = cmd + passin 
+
+            app.logger.info('sign.command: %s' % cmd)
+            
+        elif action == "verify":
+
+            outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "org")
+            extension = os.path.splitext(f.filename)[1][1:]
+
+            if verify_opt == "hexdump":
+                opts = " -hexdump"
+            elif verify_opt == "file":
+                opts = " -out \"%s\"" % outfile
+            else:
+                opts = " -hexdump"
+
+            cmd = 'openssl rsautl -verify -in \"%s\" -certin -inkey \"%s\" -keyform %s %s'  % (infile, keyfile, inform, opts)
+
+            app.logger.info('verify.command: %s' % cmd)
+            
+        else:
+            flash("error: invalid command!")
+            return render_template( '/sign-rsa.html')
+
+        result = run_cmd(cmd)
+        app.logger.info("run.command: " + result.decode())
+
+        if action == "verify" and verify_opt == "hexdump":
+            hexdump = result
+            return render_template( '/sign-rsa.html', hexdump=hexdump.decode())
+        elif (action == "verify" and verify_opt == "file") or action == "sign":
+            if os.path.isfile(outfile):
+                return send_file(outfile, as_attachment=True)
+        
+        return render_template( '/sign-rsa.html')
+
+   
+    return render_template( '/sign-rsa.html')
+
+
 @blueprint.route('/generator-base64.html', methods=['GET', 'POST'])
 def generator_base64():
 
     app.logger.info("Generate BASE64 >>>>> ")
         
     if request.method == 'POST':
-
         
         inputtext = request.form.get('inputtext', None)
         alg = request.form.get("alg", "b64")

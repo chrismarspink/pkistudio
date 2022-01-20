@@ -1,0 +1,216 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} PKIX {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">Certificate Signing Request</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">PKIX</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Key/Certificate Generate</a>
+					</li>
+				</ul>
+			</div>
+
+			<form method="post" action="" enctype="multipart/form-data">
+			<div class="row">
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Private Key</h4>
+						</div>
+						<div class="card-body">
+
+								<div class="form-group">
+
+									<div class="col-sm-12 col-lg-6">
+										<div class="card p-3">
+											<div class="d-flex align-items-center">
+												<span class="stamp stamp-md bg-secondary mr-3">
+													<i class="fas fa-key"></i>
+												</span>
+												<div>
+													<h5 class="mb-1"><b><a href="#">Private Key <small>File</small></a></b></h5>
+													<input type="file" name="inputfile" class="form-control-file" id="prikeyfile">
+													{% if errtype == 'inputfileerror' %}
+													<p class="text-danger">Error : {{ errmsg }}</p>
+													{% endif %}
+												</div>
+											</div>
+										</div>
+									</div>
+									
+									<div class="form-check">
+										<label>Private Key File Format: </label>
+										<label class="form-radio-label">
+											<input class="form-radio-input" type="radio" name="inform" value="PEM" checked="">
+											<span class="form-radio-sign">PEM</span>
+										</label>
+	
+										<label class="form-radio-label">
+											<input class="form-radio-input" type="radio" name="inform" value="DER" >
+											<span class="form-radio-sign">DER</span>
+										</label>
+									</div>
+
+									<div class="form-group ">
+										
+										<div class="form-check">
+											<label class="form-check-label">
+												<input class="form-check-input" type="checkbox" name="encrypt_option" value="enc">
+												<span class="form-check-sign">Encrypted Private Key</span>
+											</label>
+										</div>
+										<input type="password" class="form-control" id="inpass"  name="inpass" aria-label="input password" placeholder="Password">
+									</div>
+								</div>
+
+						</div> 
+					</div><!--card2-->
+
+
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Distinguished Name(DN)</h4>
+						</div>
+
+						<div class="card-body">
+							<div class="form-group">
+								<div class="form-group">
+									<label>Distinguished Name</label>
+									<input type="text" class="form-control" placeholder="/C=KR/CN=user/emailAddress=user@email.com" aria-label="dn" aria-describedby="basic-addon1">
+									<p class="text-primary">Ex) /C=KR/O=pki studio/CN=User Name/emailAddress=user@mail.addr/L=local/OU=userOrgUnut/...</p>
+								</div>
+
+								<div class="form-group">
+									<label>Validity(days)</label>
+										<input type="text" class="form-control" placeholder="365" aria-label="days" aria-describedby="basic-addon1">
+								</div>
+
+								<div class="form-group">
+									<label>Subject Alternative Name(SAN)</label>
+									<input type="text" class="form-control" placeholder="*.google.com,*.naver.com" aria-label="days" name="altname" aria-describedby="basic-addon1">
+									<!--p class="text-primary">Ex) DNS:foo.bar.co.kr,DNS:www.domain.name,IP:127.50.50.50</p-->
+									<div class="form-group">
+										<details>
+											<summary>
+												인증서 확장 필드(SubjectAltName) 설정
+											</summary>
+											<span>
+												this is span
+												<button class="btn btn-primary" type='submit' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+													span button X509 Certificate
+												</button>
+											</span>
+	
+										</details>
+									</div>
+								</div>
+
+								<div class="form-check">
+									<label>Certificate Version</label>
+									<label class="form-radio-label">
+										<input class="form-radio-input" type="radio" name="version" value="v3" checked="">
+										<span class="form-radio-sign">V3</span>
+									</label>
+
+									<label class="form-radio-label">
+										<input class="form-radio-input" type="radio" name="version" value="v2" >
+										<span class="form-radio-sign">V2</span>
+									</label>
+								</div>
+			
+								<div class="form-group">
+									<button class="btn btn-primary" type='submit' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+										Generate CSR
+									</button>
+									<button class="btn btn-primary" type='submit' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+										Generate X509 Certificate
+									</button>
+								</div>
+
+								<div class="form-group">
+									<details>
+										<summary>
+											details>summary
+										</summary>
+										<span>
+											this is span
+											<button class="btn btn-primary" type='submit' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+												span button X509 Certificate
+											</button>
+										</span>
+
+									</details>
+								</div>
+							</div>
+								
+
+								
+							</div>
+						</div> 
+					</div><!--card-->
+
+				</div>
+				</form>
+
+					{%if prikey_pem%}
+						<div class="card">
+							<div class="card-header">
+								<h4 class="card-title">Private Key</h4>
+							</div>
+							<div class="card-body">
+								<pre>{{prikey_pem}}</pre>
+							</div>	
+						</div>
+					{%endif%}
+
+					{%if pubkey_pem%}
+						<div class="card">
+							<div class="card-header">
+								<h4 class="card-title">Public Key</h4>
+							</div>
+							<div class="card-body">
+								
+								<pre>{{pubkey_pem}}</pre>
+							</div>	
+						</div>
+	  				{%endif%}
+
+					
+				</div>
+				
+			</div>
+
+		</div>
+	</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+
+{% endblock javascripts %}

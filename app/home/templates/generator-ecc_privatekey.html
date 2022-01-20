@@ -10,7 +10,7 @@
 	<div class="content">
 		<div class="page-inner">
 			<div class="page-header">
-				<h4 class="page-title">Private Key</h4>
+				<h4 class="page-title">Elliptic Curve Private Key</h4>
 				<ul class="breadcrumbs">
 					<li class="nav-home">
 						<a href="#">
@@ -36,7 +36,7 @@
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">Generate Private Key</h4>
+							<h4 class="card-title">Generate EC Private Key</h4>
 						</div>
 
 						<div class="card-body">
@@ -45,10 +45,10 @@
 							<div class="form-group">
 
 								<div class="form-group">
-									<label for="exampleFormControlFile1">RSA Key Length</label>
+									<label for="exampleFormControlFile1">Elliptic Curve Parameter</label>
 									<select class="form-control form-control" id="keylen" name="keylen">
-										{% for element in rsa_param %}
-										<option value={{element}}>{{ element }}-bits </option>
+										{% for element in ecc_curves %}
+										<option value={{element}}>{{ element }} </option>
   										{% endfor %}
 									</select>
 								</div>	
@@ -62,12 +62,12 @@
 										</label>
 									</div>
 									<div class="input-group">
-										<input type="password" class="form-control" id="inpass" aria-label="Text input with dropdown button" placeholder="Password">
+										<input type="password" class="form-control" name="inpass" id="inpass" aria-label="Text input with dropdown button" placeholder="Password">
 										<div class="input-group-append">
 											<button class="btn btn-default btn-border" type="button" data-toggle="dropdown" aria-haspopup="false" aria-expanded="false">Encryption Algorithm</button>
 											<select class="form-control form-control" id="pem_selected" name="enc_alg">
 												{% for element in aes_alg_list %}
-      												<option value="{{element}}">{{ element}} </option>
+      												<option value="{{element}}">{{ element  }} </option>
   												{% endfor %}
 											</select>
 										</div>
@@ -97,13 +97,21 @@
 
 					</div>
 
+	<form method="post" action="">					
 					{%if prikey_pem%}
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">Private Key</h4>
+							<h4 class="card-title">EC Private Key</h4>
 						</div>
 						<div class="card-body">
-							<form method="post" action="">
+							<!--form method="post" action=""-->
+								<div class="form-group">
+									<label for="exampleFormControlFile1">EC Parameter</label>
+									<textarea class="form-control" id="pem-data-parsed"  name="ecparam" rows=1 style="border:none resize:none {{env.textarea_style}}" readonly>{{keylen}}
+									</textarea>
+								</div>
+
+
 								<div class="form-group">
 									<textarea class="form-control" id="pem-data-parsed"  name="prikey_pem" rows=10 style="font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;white-space:pre-wrap">{{prikey_pem}}
 									</textarea>
@@ -113,7 +121,7 @@
 										download
 									</button>
 								</div>
-							</form>
+							<!--/form-->
 						</div>	
 						
 					</div>
@@ -122,25 +130,26 @@
 					{%if pubkey_pem%}
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">Public Key</h4>
+							<h4 class="card-title">EC Public Key</h4>
 						</div>
 						<div class="card-body">
-							<form method="post" action="">
+							<!--form method="post" action=""-->
+								
 								<div class="form-group">
 									<textarea class="form-control" id="pem-data-parsed"  name="pubkey_pem" rows=10 style="{{env.textarea_style}}">{{pubkey_pem}}
 									</textarea>
-									<!--re>{{pubkey_pem}}</pre-->
 								</div>
 								<div class="form-group">
 									<button class="btn btn-secondary btn-xs" type='submit' name="action" value='download_pubkey'><span class="btn-label"><i class="fa fa-check"></i></span>
 										download
 									</button>
 								</div>
-							</form>
+							<!--/form-->
 						</div>	
 
 					</div>
 	  				{%endif%}
+	</form>
 					
 				</div>
 				

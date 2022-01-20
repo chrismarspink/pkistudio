@@ -72,23 +72,23 @@
 									</label>
 								</div>
 
-                                <div class="form-group">
+                                <!--div class="form-group">
 									<label for="exampleFormControlFile1">Signature File</label>
 								    <input type="file" name="inputfile" class="form-control-file" id="inputfile">
 									{% if errtype == 'inputfileerror' %}
 										<p class="text-danger">Error : {{ errmsg }}</p>
 									{% endif %}
-								</div>
+								</div-->
 
                                 <div class="form-check">
 									<label>Verification option: </label>
 									<label class="form-radio-label">
-										<input class="form-radio-input" type="radio" name="inform" value="PEM" checked="">
+										<input class="form-radio-input" type="radio" name="verifyopt" value="file" checked="">
 										<span class="form-radio-sign">Save verify result to file</span>
 									</label>
 
 									<label class="form-radio-label">
-										<input class="form-radio-input" type="radio" name="inform" value="DER" >
+										<input class="form-radio-input" type="radio" name="verifyopt" value="hexdump" >
 										<span class="form-radio-sign">HEX Dump verify result</span>
 									</label>
 								</div>
@@ -101,66 +101,13 @@
 								</div>
 								
 								<div class="form-group">
-									<p class="demo">
-											
-										<button class="btn btn-primary" type="submit" name="action" value="enc"> <span class="btn-label"><i class="fas fa-lock"></i></span>
-											Encrypt with Certificate
+										<button class="btn btn-primary" type="submit" name="action" value="sign"> <span class="btn-label"><i class="fas fa-lock"></i></span>
+											Sign with Private Key
 										</button>
 
-		    							<button class="btn btn-primary" type="submit" name="action" value="dec" ><span class="btn-label"><i class="fas fa-lock-open"></i></span>
-											Decrypt with Private Key
+		    							<button class="btn btn-primary" type="submit" name="action" value="verify" ><span class="btn-label"><i class="fas fa-check-circle"></i></span>
+											Verify with X509 Certificate
 										</button>
-
-										<!--button class="btn btn-secondary" type="submit" name="action" value="loadkey" ><span class="btn-label"><i class="fas fa-file-upload"></i></span>
-											Load Encryption(public) Key
-										</button-->
-		
-									</p>
-								</div>
-
-							
-						    </form>
-						</div>
-					</div>
-				</div>
-
-				
-			</div>
-
-
-			<div class="row">
-				<div class="col-md-12">
-					<div class="card">
-						<div class="card-header">
-							<h4 class="card-title">About Public Key Encryption</h4>
-							
-						</div>
-						<div class="card-body">
-							<form method="post" action="" enctype="multipart/form-data">
-								
-								<div class="form-group">
-
-									<ul class="nav nav-pills nav-info" id="pills-tab" role="tablist">
-										<li class="nav-item">
-											<a class="nav-link active btn-sm" id="pills-home-tab" data-toggle="pill" href="#in-text" role="tab" aria-controls="pills-home" aria-selected="false">Plain Text</a>
-										</li>
-										<li class="nav-item">
-											<a class="nav-link btn-sm" id="pills-profile-tab" data-toggle="pill" href="#pubkey-pem" role="tab" aria-controls="pills-profile" aria-selected="true">Public Key</a>
-										</li>
-										
-									</ul>
-
-									<div class="tab-content" id="pills-tabContent">
-										<div class="tab-pane fade show active " id="in-text" role="tabpanel" aria-labelledby="pills-home-tab">
-											<textarea class="form-control" id="pem-data" rows="5" name="inputtext">{{inputtext}}</textarea>
-										</div>
-
-										<div class="tab-pane fade" id="pubkey-pem" role="tabpanel" aria-labelledby="pills-profile-tab" name="infile-tab">
-											
-											<textarea class="form-control" id="pem-data" rows="5" name="inputtext">{{pubkey}}</textarea>
-											
-										</div>
-									</div>
 								</div>
 						    </form>
 						</div>
@@ -169,6 +116,27 @@
 
 				
 			</div>
+
+            {%if hexdump%}
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+
+                            <div class="card-header">
+                                <h4 class="card-title">Verification Result: HexDump</h4>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="" enctype="multipart/form-data">
+                                    <div class="form-group">
+                                            <pre>{{hexdump}}</pre>
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            {%endif%}
 		</div>
 	</div>
 

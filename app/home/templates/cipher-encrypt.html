@@ -32,14 +32,6 @@
 				</ul>
 			</div>
 
-			{% for message in get_flashed_messages() %}
- 			<div class="alert alert-warning">
- 				<button type="button" class="close" data-dismiss="alert">&times;</button>
- 					{{ message }}
- 			</div>
- 			{% endfor %}
-
-
 			<div class="row">
 				<div class="col-md-12">
 					<div class="card">
@@ -49,9 +41,6 @@
 						</div>
 						<div class="card-body">
 							<form method="post" action="" enctype="multipart/form-data">
-							
-								
-
 								
 								<div class="form-group">
 								    <label for="exampleFormControlFile1">Input File</label>
@@ -61,7 +50,10 @@
 								<div class="form-group">
 									<label for="defaultSelect">Select encryption algorithm</label>
 									<select class="form-control form-control" name="enc_alg" id="defaultSelect">
-										<option>aes128</option>
+										{%for alg in aes_alg_list%}
+											<option value="{{alg}}">{{alg}}</option>
+										{%endfor%}
+										<!--option>aes128</option>
 										<option>aes192</option>
 										<option>aes256</option>
 										<option>aes-128-cbc</option>
@@ -69,7 +61,7 @@
 										<option>aes-256-cbc</option>
 										<option>aes-128-ecb</option>
 										<option>aes-192-ecb</option>
-										<option>aes-256-ecb</option>
+										<option>aes-256-ecb</option-->
 									</select>
 								</div>
 

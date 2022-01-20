@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} PEM Analyzer {% endblock %} 
+{% block title %} 데모 {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -11,7 +11,7 @@
 	<div class="content">
 		<div class="page-inner">
 			<div class="page-header">
-				<h4 class="page-title">PEM Data Analyzer</h4>
+				<h4 class="page-title">쿠버네티스</h4>
 				<ul class="breadcrumbs">
 					<li class="nav-home">
 						<a href="#">
@@ -22,80 +22,55 @@
 						<i class="flaticon-right-arrow"></i>
 					</li>
 					<li class="nav-item">
-						<a href="#">Analyzer</a>
+						<a href="#">쿠버</a>
 					</li>
 					<li class="separator">
 						<i class="flaticon-right-arrow"></i>
 					</li>
 					<li class="nav-item">
-						<a href="#">PEM Analyze</a>
+						<a href="#">테스트</a>
 					</li>
 				</ul>
 				
 			</div>
-
-			{% for message in get_flashed_messages() %}
- 			<div class="alert alert-warning">
- 				<button type="button" class="close" data-dismiss="alert">&times;</button>
- 					{{ message }}
- 			</div>
- 			{% endfor %}
-
 
 
 			<div class="row">
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">Decode PRM/ASN.1 Data</h4>
+							<h4 class="card-title">쿠버네티스 파이썬 SDK</h4>
 						</div>
 
-						<div class="card-body n-5">
+						<div class="card-body">
 							<form method="post" action="" enctype="multipart/form-data">	
 							<div class="form-group ">
 							
-								
-								
-								<div class="form-group">
-									<label for="exampleFormControlFile1">Input File</label>
-									<input type="file" class="form-control-file" id="exampleFormControlFile1" name="inputfile">
-								</div>
-
-									<!--ul class="nav nav-pills nav-secondary" id="pills-tab" role="tablist">
-										<li class="nav-item">
-											<a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#in-text" role="tab" aria-controls="pills-home" aria-selected="false">Text</a>
-										</li>
-										<li class="nav-item">
-											<a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#in-file" role="tab" aria-controls="pills-profile" aria-selected="true">File</a>
-										</li>
+    							<div class="form-group">
+											{{result}}
 										
-									</ul>
-
-									<div class="tab-content" id="pills-tabContent">
-										<div class="tab-pane fade show active" id="in-text" role="tabpanel" aria-labelledby="pills-home-tab">
-											<textarea class="form-control" id="pem-data" rows="10" name="inputtext">{{inputtext}}</textarea>
-										</div>
-
-										<div class="tab-pane fade" id="in-file" role="tabpanel" aria-labelledby="pills-profile-tab" name="infile-tab">
-											
-											<div class="form-group">
-												<label for="exampleFormControlFile1">Input File</label>
-												<input type="file" class="form-control-file" id="exampleFormControlFile1" name="inputfile">
-											</div>
-											
-										</div>
-									</div-->
-							
-
-								<div class="form-group">
-									<p class="demo">
+										<table class="table">
+											<thead>
+												<tr>
+													<th scope="col">NAME</th>
+													<th scope="col">STATUS</th>
+													<th scope="col">VERSION</th>
+												</tr>
+											</thead>
+											<tbody>
+											{%for node in kubeConfList %}
+												<tr>
+													<td>{{ node['ip']}} </td>
+													<td>{{ node['namespace']}} </td>
+													<td>{{ node['name']}} </td>
+												</tr>
+											{%endfor%}
+											</tbody>
+										</table>
 											
 										<button class="btn btn-primary" type="submit" name="action" value="analyze"><span class="btn-label"><i class="fa fa-check"></i></span>
-											ASN.1 Parse
+											누르면 뭔가 되는거...
 										</button>
-
-		
-									</p>
 								</div>
 
 							</form>
@@ -104,28 +79,91 @@
 						</div>
 					</div>
 				</div>
+
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
-							<h4 class="card-title">ASN.1 Result</h4>
-							
+							<h4 class="card-title">다이나믹 노드</h4>
 						</div>
 						<div class="card-body">
-							<p class="demo">
-								<div class="form-group">
-
-									{% if errtype == 'error' %}
-										<p class="text-danger">{{ errmsg }}</p>
-									{% endif %}
-
-								    <textarea class="form-control" id="pem-data-parsed" rows="10">{% autoescape false %}{{result}}
-									{% endautoescape %}
-									</textarea>
-							    </div>
-							</p>
+							<form method="post" action="" enctype="multipart/form-data">	
+								<div class="form-group ">
+								
+									<table class="table">
+										<thead>
+											<tr>
+												<th scope="col">NAME</th>
+												<th scope="col">STATUS</th>
+												<th scope="col">VERSION</th>
+											</tr>
+										</thead>
+										<tbody>
+										{%for node in kDynamicNode %}
+											<tr>
+												<td>{{ node['name']}} </td>
+												<td>{{ node['status']}} </td>
+												<td>{{ node['version']}} </td>
+											</tr>
+										{%endfor%}
+										</tbody>
+									</table>
+								
+								</div>
+							</form>
 						</div>
 					</div>
 				</div>
+				
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">쿠버네티스 API 리스트</h4>
+							
+						</div>
+						<div class="card-body">
+								<div class="form-group">
+									{%for name, value in kConfigList.items() %}
+										{{name}} : {{value}} <br>
+									{%endfor%}
+							    </div>
+						</div>
+					</div>
+				</div>
+
+
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">쿠버 노드 리스트</h4>
+						</div>
+						<div class="card-body">
+								<div class="form-group">
+									
+										{%for name, value in kNodeList.items() %}
+											<div class="card-sub">노드: {{name}}</div>
+											<table class="table mt-3">
+												<thead>
+													<tr>
+														<th scope="col">이름</th>
+														<th scope="col">라벨</th>
+													</tr>
+												</thead>
+												<tbody>
+												{%for title, value in value.items() %}
+													<tr>
+														<td>{{title}}</td>
+														<td>{{value}}</td>
+													</tr>
+												{%endfor%}
+												</tbody>
+											</table>
+										{%endfor%}
+									
+							    </div>
+						</div>
+					</div>
+				</div>
+				
 				
 				
 			</div>
@@ -133,62 +171,7 @@
 	</div>
 
 
-	<textarea>
-		RSA Public Key
-
------BEGIN RSA PUBLIC KEY-----
------END RSA PUBLIC KEY-----
-Encrypted Private Key
-
------BEGIN RSA PRIVATE KEY-----
-Proc-Type: 4,ENCRYPTED
------END RSA PRIVATE KEY-----
-CRL
-
------BEGIN X509 CRL-----
------END X509 CRL-----
-CRT
-
------BEGIN CERTIFICATE-----
------END CERTIFICATE-----
-CSR
-
------BEGIN CERTIFICATE REQUEST-----
------END CERTIFICATE REQUEST-----
-NEW CSR
-
------BEGIN NEW CERTIFICATE REQUEST-----
------END NEW CERTIFICATE REQUEST-----
-PEM
-
------END RSA PRIVATE KEY-----
------BEGIN RSA PRIVATE KEY-----
-PKCS7
-
------BEGIN PKCS7-----
------END PKCS7-----
-PRIVATE KEY
-
------BEGIN PRIVATE KEY-----
------END PRIVATE KEY-----
-DSA KEY
-
------BEGIN DSA PRIVATE KEY-----
------END DSA PRIVATE KEY-----
-Elliptic Curve
-
------BEGIN EC PRIVATE KEY-----
------BEGIN EC PRIVATE KEY-----
-PGP Private Key
-
------BEGIN PGP PRIVATE KEY BLOCK-----
------END PGP PRIVATE KEY BLOCK-----
-PGP Public Key
-
------BEGIN PGP PUBLIC KEY BLOCK-----
------END PGP PUBLIC KEY BLOCK-----
-	</textarea>
-
+	
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
