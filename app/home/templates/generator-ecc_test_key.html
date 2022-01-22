@@ -1,0 +1,119 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Private Key {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">Elliptic Curve Name/Key Pair</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Generator</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">ECC Sample Key</a>
+					</li>
+				</ul>
+			</div>
+
+			<div class="row">
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Generate EC Private Key</h4>
+						</div>
+
+						<div class="card-body">
+						<form method="post" action="">
+
+							<div class="form-group">
+
+								<div class="form-group">
+									<label for="exampleFormControlFile1">Elliptic Curve Parameter</label>
+									<select class="form-control form-control" id="keylen" name="keylen">
+										{% for element in ecc_curves %}
+										<option value={{element}}>{{ element }} </option>
+  										{% endfor %}
+									</select>
+								</div>	
+									
+								<div class="form-group">
+									<button class="btn btn-primary" type='submit' name="action" value='generate_all'><span class="btn-label"><i class="fa fa-check"></i></span>
+										Generate ALL elliptic curve keypair
+									</button>
+									<button class="btn btn-primary" type='submit' name="action" value='generate_one'><span class="btn-label"><i class="fa fa-check"></i></span>
+										Generate selected EC keypair 
+									</button>
+								</div>
+							</div>
+						</form>
+						</div> <!--card-->
+					</div>
+
+					{%if ec_test_key%}
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">EC Private Key - ALL parameter</h4>
+						</div>
+						<div class="card-body">
+							{% for name, value in ec_test_key.items() %}
+								<div class="form-group">
+									<label for="exampleFormControlFile1">[{{loop.index}}] EC Parameter: {{name}}</label>
+									<textarea class="form-control" id="pem-data-parsed"  name="ecparam" rows=5 style="{{env.textarea_style}}" >{{value}}
+									</textarea>
+								</div>
+							{% endfor %}
+						</div>	
+						
+					</div>
+					{%endif%}
+
+					{%if name and ec_key%}
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">EC Private Key</h4>
+						</div>
+						<div class="card-body">
+							<div class="form-group">
+								<label for="exampleFormControlFile1">EC Parameter: {{name}}</label>
+								<textarea class="form-control" id="pem-data-parsed"  name="ecparam" rows=10 style="{{env.textarea_style}}" >{{ec_key}}
+								</textarea>
+							</div>
+						</div>	
+						
+					</div>
+					{%endif%}
+
+					
+				</div>
+				
+			</div>
+
+		</div>
+	</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+
+{% endblock javascripts %}

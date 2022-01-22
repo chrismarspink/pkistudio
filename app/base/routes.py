@@ -98,6 +98,11 @@ aes_alg_list = ["aes128", "aes192", "aes256",
     "aes-128-ecb", "aes-192-ecb", "aes-256-ecb",
     "aes-128-cbc", "aes-192-cbc", "aes-256-cbc"]
 
+dgst_alg_list = ["blake2b512", "blake2s256", "md4", "md5", "md5-sha1", "mdc2",                     
+    "ripemd", "ripemd160", "rmd160", "sha1", "sha224", "sha256",                    
+    "sha3-224", "sha3-256", "sha3-384", "sha3-512", "sha384", "sha512", "sha512-224", 
+    "sha512-256", "shake128", "shake256", "sm3", "ssl3-md5", "ssl3-sha1", "whirlpool"]
+
 rsabits = [1024, 2048, 4096, 8192, 16384]											
 
 env = {
@@ -200,33 +205,44 @@ def register():
         return render_template( 'accounts/register.html', form=create_account_form)
 
 
-@blueprint.route('/analyzer-asn1.html', methods=['GET', 'POST'])
-def analyzer_asn1():
-    app.logger.info("analyzer_asn1...")
-    msg=None
-    curves=[]
-
-    if request.method == 'POST':
-        action = request.form.get('action')
-        ##app.logger.info("action --> " + action)
-        
-        if action == "ecc_curves":
-            for curve in crypto.get_elliptic_curves():
-                app.logger.info(curve.name)
-                curves.append(curve.name)
-
-        
-        return render_template( '/analyzer-asn1.html', ecc_curves=curves)    
-
-    
-    return render_template( '/analyzer-asn1.html', result=msg)
-
 def get_elliptic_curve_list():
-    curves=[]
+    #일부 커브의 경우 openssl 오류 발생, 예를들어 Oakley-EC2N-4
+    #확인된 알고리즘으로 다시 리스트 작성
+    curves = []
     for curve in crypto.get_elliptic_curves():
-        curves.append(curve.name)
+        if curve.name in ("Oakley-EC2N-3", "Oakley-EC2N-4") :
+            pass
+        else:
+            curves.append(curve.name)
 
     return curves
+
+
+@blueprint.route('/generator-ecc_test_key.html', methods=['GET', 'POST'])
+def generator_ecc_test_key():
+
+    curves = get_elliptic_curve_list()
+
+    ec_test_key = {}
+    if request.method == 'POST':
+        action = request.form.get('action')
+        keylen = request.form.get("keylen")
+        app.logger.info("action, name = %s, %s" % (action, keylen))
+        if action == "generate_all":
+            for name in curves:
+                cmd = "openssl ecparam -genkey -name %s" % name
+                key_pem = run_cmd(cmd)
+                ec_test_key[name] = key_pem.decode()
+        
+            return render_template( '/generator-ecc_test_key.html', env=env, ec_test_key=ec_test_key, ecc_curves=curves)
+        elif action == "generate_one":
+            #name = request.form.get("keylen")
+            cmd = "openssl ecparam -genkey -name %s" % keylen
+            key_pem = run_cmd(cmd)
+            ec_key = key_pem.decode()
+            return render_template( '/generator-ecc_test_key.html', env=env, name=keylen, ec_key=ec_key, ecc_curves=curves)
+
+    return render_template( '/generator-ecc_test_key.html', env=env, ec_test_key=None, ecc_curves=curves)
 
 @blueprint.route('/generator-privatekey.html', methods=['GET', 'POST'])
 def generator_privatekey():
@@ -323,12 +339,13 @@ def generator_ecc_privatekey():
             if encrypt_option:
                 inpass = request.form.get("inpass", None)
                 enc_alg = request.form.get("enc_alg", None)
-                app.logger.info("inpass:%s, alg:%s" % pemstr)
+                app.logger.info("inpass:%s, alg:%s" % (inpass, enc_alg))
                 if not inpass:
-                    errtype="inpass"
-                    errmsg="Invalid passphrase"
+
                     return render_template( '/generator-ecc_privatekey.html', 
-                        env=env, ecc_curves=curves, aes_alg_list=aes_alg_list, errtype=errtype, errmsg=errmsg)
+                        env=env, ecc_curves=curves, aes_alg_list=aes_alg_list, errtype="inpass", errmsg="암호화에 사용될 패스워드를 입력하세요.")
+                encrypted_str = do_openssl(pubkey_bytes, "pkey", "-passin", "pass:%s" % inpass, "-%s" % enc_alg)
+                prikey_pem = encrypted_str.decode('utf-8')
 
             else:
                 app.logger.info("generate_privatekey: encopt_checked: disabled(None)")
@@ -370,46 +387,201 @@ def generator_ecc_privatekey():
 
 
 
-@blueprint.route('/pkix-generate_keypair.html', methods=['GET', 'POST'])
-def pkix_generate_keypair():
+@blueprint.route('/pkix-generate_csr.html', methods=['GET', 'POST'])
+def pkix_generate_csr():
 
-    algorithm_name="RSA"
-    curves =  get_elliptic_curve_list()
-
-    """for curve in crypto.get_elliptic_curves():
-        app.logger.info(curve.name)
-        curves.append(curve.name)
-    """
+    result = None
+    is_encrypted=False
+    filename = None
+    csr_pem = csr_pem_text = cert_pem = cert_pem_text = None
 
     if request.method == 'POST':
-        name = request.form.get('alg')
 
-        if name == "RSA":
-            algorithm_name="RSA"
-        if name == "ECCDSA":
-            algorithm_name="ECDSA"
+        action = request.form.get('action')
+        app.logger.info("action   : %s", action)
+        
+        if action == "download_csr_pem":
+            data = request.form.get("csr_pem", None)
+            generator = (cell for row in data for cell in row)
+            return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=csr.pem"})
+        elif action == "download_csr_pem_text":
+            data = request.form.get("csr_pem_text", None)
+            generator = (cell for row in data for cell in row)
+            return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=csr.txt"})
+        elif action == "download_cert_pem":
+            data = request.form.get("cert_pem", None)
+            generator = (cell for row in data for cell in row)
+            return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=cert.pem"})
+        elif action == "download_csr_pem_text":
+            data = request.form.get("cert_pem_text", None)
+            generator = (cell for row in csr_pem for cell in row)
+            return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=cert.txt"})
 
-        key = crypto.PKey()
-        key.generate_key(crypto.TYPE_RSA, 1024)
-        priv_key = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
-        prikey_pem=priv_key.decode('utf-8')
+        #개인키
+        f = request.files.get('inputfile', None)
+        if not f:
+            app.logger.info("file not found")
+            return render_template( '/pkix-generate_csr.html'
+                , errtype="inputfile"
+                , errmsg="Invalid file name"
+                ,env=env, csr_pem=csr_pem, csr_pem_text=csr_pem_text, cert_pem=cert_pem, cert_pem_text=cert_pem_text)
+            
+        infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
+        f.save(infile)
+        #DN
+        subj = request.form.get("subj", None)
+        #inform der/pem
+        inform = request.form.get("inform", "PEM")
+        #is Encrypted
+        if request.form.get("encrypt_option"):
+            is_encrypted=True
 
-        #pubkey = key.get_pubkey()
-        pubkey_pem = crypto.dump_publickey(crypto.FILETYPE_PEM, key)
-        pubkey_pem = pubkey_pem.decode('utf-8')
-        alg=name
+        
+        ##정수여부는 .isdigit()로도 확인 가능
+        value = request.form.get("days", None)
+        try: 
+            days = int(value)
+        except:            
+            days = 30
 
-        ## expect 'enc'
-        encopt_checked = request.form.get("encrypt_option")
-        if encopt_checked:
-            app.logger.info("generate_privatekey: encopt_checked: " + encopt_checked)
+        san = request.form.get('san', None)
+        inpass = request.form.get('inpass', None)
+        version = request.form.get('version')
+        subjectaltname = request.form.get('subjectaltname', None)
+        
+        app.logger.info("key file : %s", infile)
+        app.logger.info("dn       : %s", subj)
+        app.logger.info("inform   : %s", inform)
+        app.logger.info("inpass   : %s", inpass)
+        app.logger.info("days     : %d", days)
+        app.logger.info("san      : %s", san)
+        app.logger.info("version  : %s", version)
+         
 
+        cmd = "openssl req "
+        if action == "csr":
+            cmd = cmd + " -new"
+        if action == "certificate":
+            cmd = cmd + " -new -x509 "
+
+        cmd = cmd + " -utf8 -sha256 -batch -key %s -keyform %s -days %d -subj \"%s\"" % (infile, inform, days, subj)
+
+        if subjectaltname:
+            cmd = cmd + " -addext \"subjectAltName=%s\"" % subjectaltname
+        
+        if is_encrypted:
+                if not inpass:
+                    return render_template( '/pkix-generate_csr.html', errtype="inpass", errmsg="Invalid private key passphrase")
+                cmd = cmd + " -passin pass:%s" % inpass
+
+        try:
+            output_pem = run_cmd(cmd)
+        except:
+            return render_template( '/pkix-generate_csr.html', errtype="error", errmsg="fail to generate csr/certificate")
+
+        ###csr_pem = csr_pem_text = cert_pem = cert_pem_text = None
+
+        if output_pem.decode().startswith("-----BEGIN") and action == "csr":
+            output_pem_text = do_openssl(output_pem, b"req", b"-text", b"-noout")
+            csr_pem = output_pem.decode()
+            csr_pem_text = output_pem_text.decode()
+            cert_pem = cert_pem_text = None
+        elif output_pem.decode().startswith("-----BEGIN") and action == "certificate":
+            output_pem_text = do_openssl(output_pem, b"x509", b"-text", b"-noout")
+            cert_pem = output_pem.decode()
+            cert_pem_text = output_pem_text.decode()
+            csr_pem = csr_pem_text = None
         else:
-            app.logger.info("generate_privatekey: encopt_checked: disabled(None)")
+            return render_template( '/pkix-generate_csr.html', errtype="error", errmsg="Fail to generate CSR/Certificate!")
 
-        return render_template( '/pkix-generate_keypair.html', env=env, prikey_pem=prikey_pem, pubkey_pem=pubkey_pem, ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+        return render_template( '/pkix-generate_csr.html', env=env, csr_pem=csr_pem, csr_pem_text=csr_pem_text, cert_pem=cert_pem, cert_pem_text=cert_pem_text)   
 
-    return render_template( '/pkix-generate_keypair.html', env=env, ecc_curves=curves, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+        
+
+    return render_template( '/pkix-generate_csr.html', env=env)
+
+
+
+@blueprint.route('/ssl-getcert.html', methods=['GET', 'POST'])
+def ssl_getcert():
+    result = None
+    is_encrypted=False
+    filename = None
+    csr_pem = csr_pem_text = cert_pem = cert_pem_text = None
+
+    if request.method == 'POST':
+
+        action = request.form.get('action') ##extract/download
+        app.logger.info("action   : %s", action)
+        
+        if action == "download":
+            data = request.form.get("cert_txt", None)
+            generator = (cell for row in data for cell in row)
+            return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=cert.info"})
+
+        url = request.form.get("url", None)
+        port = request.form.get("port",  None)
+        
+        app.logger.info("url  : %s", url)
+        app.logger.info("port : %s", port)
+
+        cmd = "openssl s_client -showcerts -servername %s -connect %s:%s </dev/null" % (url, url, port)
+        try:
+            cert_txt = run_cmd(cmd)
+        except:
+            return render_template( '/ssl-getcert.html', env=env, errtype="error", errmsg="fail to extract ssl certificate")
+
+        return render_template( '/ssl-getcert.html', env=env, cert_txt=cert_txt.decode('utf-8'))   
+
+    return render_template( '/ssl-getcert.html', env=env)
+
+
+@blueprint.route('/pkix-encrypt_privatekey.html', methods=['GET', 'POST'])
+def pkix_enrypt_privatekey():
+    result = None
+    is_encrypted=False
+    filename = None
+    key_pem = None
+
+    if request.method == 'POST':
+
+        action = request.form.get('action') ##extract/download
+        app.logger.info("action   : [%s]", action)
+        
+        if action == "download":
+            data = request.form.get("key_pem", None)
+            generator = (cell for row in data for cell in row)
+            return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=key.pem"})
+
+        inputtext = request.form.get("inputtext", None)
+        inpass = request.form.get("inpass",  None)
+        outpass = request.form.get("outpass",  None)
+        cipher = request.form.get("cipher",  "aes256")
+        
+        app.logger.info("inputtext: %s", inputtext)
+        app.logger.info("inpass   : %s", inpass)
+        app.logger.info("outpass  : %s", outpass)
+        app.logger.info("cipher   : %s", cipher)
+        
+        try: 
+            if action == "enc":
+                app.logger.info("encrypt >>>")
+                key_pem = do_openssl(inputtext.encode('utf-8'), b'pkey', "-%s" % cipher, b'-passout',  "pass:%s" % outpass)
+            elif action == "dec":
+                app.logger.info("decrypt >>>")
+                key_pem = do_openssl(inputtext.encode('utf-8'), b'pkey', b'-passin', "pass:%s" % inpass)
+            elif action == "reenc":
+                app.logger.info("decrypt & encrypt >>>")
+                key_pem = do_openssl(inputtext.encode('utf-8'), b'pkey',  "-%s" % cipher, b'-passin',  "pass:%s" % inpass, b'-passout', "pass:%s" % outpass)
+
+            app.logger.info("KEY PEM: %s" % key_pem.decode('utf-8'))
+        except:
+            return render_template( '/pkix-encrypt_privatekey.html', env=env, aes_alg_list=aes_alg_list, errtype="error", errmsg="fail to en/dercypt private key")
+
+        return render_template( '/pkix-encrypt_privatekey.html', env=env, aes_alg_list=aes_alg_list, key_pem=key_pem.decode('utf-8'))   
+
+    return render_template( '/pkix-encrypt_privatekey.html', env=env, aes_alg_list=aes_alg_list)
+
 
 """
 @blueprint.route('/docker-main.html', methods=['GET', 'POST'])
@@ -1204,6 +1376,7 @@ def sign_rsa():
 
             outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "sign")
             cmd = 'openssl rsautl -sign  -in \"%s\" -inkey \"%s\" -keyform %s -out \"%s\"' % (infile, keyfile, inform, outfile)
+            #cmd = 'openssl pkeyutl -sign  -in \"%s\" -inkey \"%s\" -keyform %s -out \"%s\"' % (infile, keyfile, inform, outfile)
             if inpass:
                 passin = " -passin pass:%s" % inpass
                 cmd = cmd + passin 
