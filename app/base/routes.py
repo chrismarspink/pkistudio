@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+#dp -*- encoding: utf-8 -*-
 """
 Copyright (c) 2019 - present AppSeed.us
 """
@@ -39,7 +39,7 @@ import base64
 
 from OpenSSL._util import (ffi as _ffi, lib as _lib)
 
-from werkzeug.utils           import secure_filename
+from werkzeug.utils import secure_filename
 
 from flask import send_file
 import re, os, time, string, random
@@ -55,16 +55,13 @@ import logging
 import logging.handlers
 
 from config import config_dict, config
-
-
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
-
+#from Crypto.PublicKey import RSA
+#from Crypto.Cipher import PKCS1_OAEP
 
 ##########
 ## DOCKER SDK
 ##########
-import docker
+#import docker
 
 ##########
 ## 쿠버네티스 SDK
@@ -123,7 +120,34 @@ def do_openssl(pem, *args):
     proc.stdout.close()
     proc.wait()
     return output
+
+def do_openssl2(pem, *args):
+    """
+    Run the command line openssl tool with the `g`iven arguments and write
+    the given PEM to its stdin.  Not safe for quotes.
+    """
+    proc = subprocess.Popen([b"openssl"] + list(args), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc.stdin.write(pem)
+    proc.stdin.close()
+    err = proc.stderr.read()
+    proc.stderr.close()
+
+    output = proc.stdout.read()
+    proc.stdout.close()
+    
+    proc.wait()
+    return err, output
 ##########
+
+def do_openssl3(cmd):
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate(input=input)
+
+    if process.returncode:
+        app.logger.info("do_openssl3: returncode: " + process.returncode)
+        raise Exception(stderr, cmd)
+
+    return stdout, stder
 
 
 def run_cmd(cmd, input=None):
@@ -131,13 +155,19 @@ def run_cmd(cmd, input=None):
     stdout, stderr = process.communicate(input=input)
 
     if process.returncode:
+        
         raise Exception(stderr, cmd)
 
     return stdout
-
+"""
 @blueprint.route('/')
 def route_default():
     return redirect(url_for('base_blueprint.login'))
+"""
+
+@blueprint.route('/')
+def route_default():
+    return render_template( '/index.html' )
 
 ## Login & Registration
 @blueprint.route('/login', methods=['GET', 'POST'])
@@ -502,6 +532,122 @@ def pkix_generate_csr():
 
 
 
+
+@blueprint.route('/pkix-verify_csr.html', methods=['GET', 'POST'])
+def pkix_verify_csr():
+
+    result = None
+    is_encrypted=False
+    filename = None
+    csr_pem = verify_result = output = None
+
+    if request.method == 'POST':
+
+        action = request.form.get('action')
+        app.logger.info("action   : %s", action)
+        
+        #개인키
+        csr_pem = request.form.get('inputtext', None)
+        app.logger.info("csr-pem   : %s", csr_pem)
+        
+        if not csr_pem:
+            app.logger.info("Invalid CSR: %s" % csr_pem)
+            return render_template( '/pkix-verify_csr.html', errtype="inputfile", errmsg="NO CSR MESSAGE", env=env)
+
+        if not csr_pem.startswith("-----BEGIN CERTIFICATE REQUEST-----"):
+            app.logger.info("Invalid CSR: %s" % csr_pem)
+            return render_template( '/pkix-verify_csr.html', errtype="inputfile", errmsg="INVALID FORMAT CSR MESSAGE", env=env)
+
+        try:
+            verify_result, output = do_openssl2(csr_pem.encode('utf-8'), b"req", b"-noout", b"-text", b"-verify")
+            #cmd = 'openssl req -verify -text -noout -in $(echo %s)' % csr_pem
+            #verify_result = run_cmd(cmd)
+            app.logger.info("verify_result: %s" % verify_result)    
+        except:
+            #app.logger.info("verify_result: %s" % verify_result)    
+            return render_template( '/pkix-verify_csr.html', errtype="error", errmsg="FAIL TO VERIFY CSR MESSAGE")
+
+        result = verify_result.decode()
+        details = None
+        show = request.form.get("show", None)
+        app.logger.info("show: %s" % show)
+        app.logger.info("output: %s" % output)
+
+        if show == "details" and output:
+            details = output.decode()
+
+        return render_template( '/pkix-verify_csr.html', env=env, result=result, inputtext=csr_pem, details=details)   
+
+    return render_template( '/pkix-verify_csr.html', env=env)
+
+
+@blueprint.route('/pkix-verify_certificate.html', methods=['GET', 'POST'])
+def pkix_verify_certificate():
+
+    result = None
+    is_encrypted=False
+    filename = None
+    input_pem = verify_result = output = None
+
+    if request.method == 'POST':
+
+        action = request.form.get('action')
+        app.logger.info("action   : %s", action)
+        
+        #
+        input_pem = request.form.get('inputtext', None)
+        app.logger.info("input_pem   : %s", input_pem)
+        
+        if not input_pem:
+            app.logger.info("Invalid Certificate: %s" % input_pem)
+            return render_template( '/pkix-verify_certificate.html', errtype="inputfile", errmsg="NO CERTIFICATE", env=env)
+
+        if not input_pem.startswith("-----BEGIN CERTIFICATE-----"):
+            app.logger.info("Invalid CSR: %s" % input_pem)
+            return render_template( '/pkix-verify_certificate.html', errtype="inputfile", errmsg="INVALID FORMAT CERTIFICATE", env=env)
+
+        f = request.files.get("cafile", None)
+        if not f:
+            app.logger.info("file not found")
+            return render_template( '/pkix-verify_certificate.html', errtype="cafileerror", errmsg="INVALID CA CERTIFICATES FILE")
+            
+        cafile = os.path.join(app_config.UPLOAD_DIR, f.filename)
+        f.save(cafile)
+
+        app.logger.info("CAfile: %s" % cafile)    
+
+        try:
+            ##verify_result, output = do_openssl2(input_pem.encode('utf-8'), b"verify", b"-CAfile", b"-text", b"-verify")
+            #cmd = 'openssl req -verify -text -noout -in $(echo %s)' % csr_pem
+            #verify_result = run_cmd(cmd)
+            options = ""
+            if request.form.get("check_ss_cert", None):
+                verify_result = do_openssl(input_pem.encode('utf-8'), b"verify", "-check_ss_cert", "-show_chain",  b"-CAfile", cafile)
+            else:
+                verify_result = do_openssl(input_pem.encode('utf-8'), b"verify", "-show_chain",  b"-CAfile", cafile)
+
+            #verify_result = do_openssl(input_pem.encode('utf-8'), b"verify", options,  b"-CAfile", cafile)
+
+            app.logger.info("verify_result: %s" % verify_result)    
+        except:
+            #app.logger.info("verify_result: %s" % verify_result)    
+            return render_template( '/pkix-verify_certificate.html', errtype="error", errmsg="FAIL TO VERIFY CERTIFICATE")
+
+        result = verify_result.decode()
+        details = None
+        show = request.form.get("show", None)
+        app.logger.info("show: %s" % show)
+        app.logger.info("output: %s" % output)
+
+        #if show == "details" and output:
+        #    details = output.decode()
+
+        return render_template( '/pkix-verify_certificate.html', env=env, result=result, inputtext=input_pem) #, details=details)   
+
+    return render_template( '/pkix-verify_csr.html', env=env)
+
+
+
 @blueprint.route('/ssl-getcert.html', methods=['GET', 'POST'])
 def ssl_getcert():
     result = None
@@ -547,6 +693,12 @@ def pkix_enrypt_privatekey():
 
         action = request.form.get('action') ##extract/download
         app.logger.info("action   : [%s]", action)
+
+        if action == "generate_rsa" or action == "generate_ecc":
+            pass
+
+
+        ## generate_rsa/ecc
         
         if action == "download":
             data = request.form.get("key_pem", None)
@@ -610,6 +762,7 @@ def docker_main():
     flash('GET Docker-Main') 
     return render_template( '/docker-main.html', containerList=client.containers.list(), images=images, configs=configs)
 
+"""
 
 @blueprint.route('/k8s-main.html', methods=['GET', 'POST'])
 def k8s_main():
@@ -707,10 +860,31 @@ def analyzer_pkcs12():
 
     userkey_pem = usercert_pem = cacert_pem = None
     inpass = outpass = None
-    result = "GET"
+
     if request.method == 'POST':
-        flash('POST')          
-        #result = "this is pkcs12... & post"
+
+        action = request.form.get("action")
+        
+        try: 
+            if action == "download_usercert":
+                data = request.form.get("usercert_pem")
+                app.logger.info("usercert(pem): %s", usercert_pem)
+                generator = (cell for row in data for cell in row)
+                return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=usercert.pem"})
+
+            if action == "download_userkey":
+                data = request.form.get("userkey_pem")
+                app.logger.info("download userkey(pem): %s", userkey_pem)
+                generator = (cell for row in data for cell in row)
+                return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=userkey.pem"})
+
+            if action == "download_cacert":
+                data = request.form.get("cacert_pem")
+                app.logger.info("download cacert(pem): %s", cacert_pem)
+                generator = (cell for row in data for cell in row)
+                return Response(generator, mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=cacert.pem"})
+        except: 
+            return render_template( '/analyzer-pkcs12.html', errtype="error", errmsg="FAIL TO DOWNLOAD DATA")
 
         mode = request.form.get("inpass")
 
@@ -719,36 +893,35 @@ def analyzer_pkcs12():
             app.logger.info("file not found")
             return render_template( '/analyzer-pkcs12.html', result=result)
             
-        infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
-        f.save(infile)
-        inpass = request.form.get("inpass").encode('utf-8')
-        p12 = crypto.load_pkcs12(open(infile, 'rb').read(), inpass)
-        if not p12:
-            flash("Cannot parse pkcs12 file.")
-            return render_template( '/analyzer-pkcs12.html', result=result)
+        try:
+            infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
+            f.save(infile)
+            inpass = request.form.get("inpass").encode('utf-8')
+            p12 = crypto.load_pkcs12(open(infile, 'rb').read(), inpass)
+            if not p12:
+                return render_template( '/analyzer-pkcs12.html', errtype="error", errmsg="INVALID PKCS12 FILE")
 
-        usercert = p12.get_certificate()  # (signed) certificate object
-        if usercert:
-            usercert_pem = crypto.dump_certificate(crypto.FILETYPE_PEM, usercert)
-            usercert_pem = usercert_pem.decode('utf-8')
-     
-        userkey = p12.get_privatekey()      # private key.
-        if userkey:
-            userkey_pem = crypto.dump_privatekey(crypto.FILETYPE_PEM, userkey)
-            userkey_pem = userkey_pem.decode('utf-8')
-
-        cacert = p12.get_ca_certificates() # ca chain.
-        if cacert:
-            cacert_pem = crypto.dump_certificate(crypto.FILETYPE_PEM, cacert).decode('utf-8')
-
-        #usercert_pem = crypto.dump_certificate(crypto.FILETYPE_PEM, p12.get_certificate()).decode('utf-8')
-        #userkey_pem = crypto.dump_privatekey(crypto.FILETYPE_PEM, p12.get_privatekey()).decode('utf-8')
-        #cacert_pem = crypto.dump_certificate(crypto.FILETYPE_PEM, p12.get_ca_certificates()).decode('utf-8')
+            usercert = p12.get_certificate()  # (signed) certificate object
+            if usercert:
+                usercert_pem = crypto.dump_certificate(crypto.FILETYPE_PEM, usercert)
+                usercert_pem = usercert_pem.decode('utf-8')
         
-        return render_template( '/analyzer-pkcs12.html', userkey_pem=userkey_pem, usercert_pem=usercert_pem, cacert_pem = cacert_pem)    
+            userkey = p12.get_privatekey()      # private key.
+            if userkey:
+                userkey_pem = crypto.dump_privatekey(crypto.FILETYPE_PEM, userkey)
+                userkey_pem = userkey_pem.decode('utf-8')
+
+            cacert = p12.get_ca_certificates() # ca chain.
+            if cacert:
+                cacert_pem = crypto.dump_certificate(crypto.FILETYPE_PEM, cacert).decode('utf-8')
+
+        except:
+            return render_template( '/analyzer-pkcs12.html', errtype="error", errmsg="FAIL TO PARSE PKCS12 FILE")
+        
+        
+        return render_template( '/analyzer-pkcs12.html', env=env, userkey_pem=userkey_pem, usercert_pem=usercert_pem, cacert_pem = cacert_pem)    
     
-    flash('GET') 
-    return render_template( '/analyzer-pkcs12.html', result=result)
+    return render_template( '/analyzer-pkcs12.html', env=env)
 
 
 
@@ -838,13 +1011,15 @@ def get_pem_type(inputtext):
     elif inputtext.startswith("-----BEGIN PKCS7-----"): pemtype = "pkcs7"
     elif inputtext.startswith("-----BEGIN X509 CRL-----"): pemtype = "crl"
     elif inputtext.startswith("-----BEGIN CMS-----"): pemtype = "cms"
+    elif inputtext.startswith("-----BEGIN EC PRIVATE KEY-----"): pemtype = "ecprikey"
+    elif inputtext.startswith("-----BEGIN EC PARAMETERS-----"): pemtype = "ecparam"
     else: pemtype = None 
 
     return pemtype
     
 
 def is_binary(filename):
-    cmd = "file -b " + filename.decode('utf-8')
+    cmd = "file -b \"%s\"" % filename.decode('utf-8')
     app.logger.info("is_binary():cmd: " + cmd)
     f = os.popen(cmd, 'r')
     if f:
@@ -875,7 +1050,7 @@ def is_binary(filename):
 def get_pki_file_type(filename):
 
     #cmd = "file -b " + filename.decode('utf-8')
-    cmd = "file -b " + filename
+    cmd = "file -b \"%s\"" % filename
     f = os.popen(cmd, 'r')
     if f:
         rs = f.read() 
@@ -919,8 +1094,6 @@ def analyzer_pem():
     informArg = "PEM"
     asn1mode = False
     
-    ###DEBUG
-    ##for dict in PEM_TYPE_LIST: app.logger.info(dict['type'] + ", " + dict['tag'] + ", " + dict['desc'])
     
     if request.method == 'POST':
 
@@ -933,7 +1106,7 @@ def analyzer_pem():
         action = request.form.get("action") ##analyze
 
         if action =="clear":
-            return render_template( '/analyzer-pem.html', result=None, errmsg=None, errtype=None, inputtext="")    
+            return render_template( '/analyzer-pem.html', env=env, result=None, errmsg=None, errtype=None, inputtext="")    
 
         asn1mode_checked = request.form.get("asn1mode")
         if asn1mode_checked:
@@ -957,6 +1130,10 @@ def analyzer_pem():
 
             dataType = get_pem_type(inputtext)
             app.logger.info("input format(PEM TEXT): " + dataType)
+            if not dataType:
+                return render_template( '/analyzer-pem.html', env=env,  result=None, errmsg="unsupport data type", errtype="error") 
+
+            #app.logger.info("input format(PEM TEXT): " + dataType)
 
         elif f:
             infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
@@ -1001,7 +1178,7 @@ def analyzer_pem():
             errtype = "error"
             errmsg = "error: No Input Data(Text/File)"
             flash(errmsg)
-            return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype)    
+            return render_template( '/analyzer-pem.html', env=env, result=None, errmsg=errmsg, errtype=errtype)    
 
         
         
@@ -1020,9 +1197,9 @@ def analyzer_pem():
                 if result.startswith("Error") or result.startswith("error"):
                     errtype="error"
                     errmsg="invalid asn.1 message"
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
                 
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                return render_template( '/analyzer-pem.html',env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
 
             elif dataType == "crt":
                 
@@ -1039,7 +1216,7 @@ def analyzer_pem():
                 if not result.startswith("Certificate:"):
                     errtype, errmsg = "error", "error: Invalid X509 Certificate"
                     app.logger.info(errmsg)
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
 
             #elif textmode and inputtext.startswith("-----BEGIN CERTIFICATE REQUEST-----"):
             elif dataType == "csr":
@@ -1072,7 +1249,7 @@ def analyzer_pem():
                     errtype = "error"
                     errmsg = "error: invalid RSA public key" 
                     app.logger.info(errmsg)
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html', env=env, result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
 
             #elif inputtext.startswith("-----BEGIN RSA PRIVATE KEY-----"):
             elif dataType == "rsaprikey":
@@ -1089,7 +1266,25 @@ def analyzer_pem():
                     errtype = "error"
                     errmsg = "error: invalid RSA Private Key" 
                     app.logger.info(errmsg)
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            elif dataType == "ecprikey":
+
+                if inType == "file":
+                    cmd = "openssl ec -text -noout -inform DER -in " + infile
+                    app.logger.info("binary command for RSA Private Key : " + cmd)
+                    pemstr = run_cmd(cmd)
+                else:
+                    pemstr = do_openssl(inputtext.encode('utf-8'), b"ec", b"-text", b"-noout", b"-inform", b"PEM")
+                
+                result = pemstr.decode()
+                app.logger.info("result : " + result)
+                
+                if not result.startswith("Private-Key"):
+                    errtype = "error"
+                    errmsg = "error: invalid EC Private Key" 
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-pem.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
 
             #elif inputtext.startswith("-----BEGIN ENCRYPTED PRIVATE KEY-----"):
             elif dataType == "enc_rsaprikey":
@@ -1098,7 +1293,7 @@ def analyzer_pem():
                     errtype = "inpass"
                     errmsg = "error: no input password"
                     app.logger.info(errmsg)
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
                 else:
                     passin_arg = "pass:" + inpass
 
@@ -1115,7 +1310,7 @@ def analyzer_pem():
                     errtype = "error"
                     errmsg = "error: invalid encrypted RSA Private Key"
                     app.logger.info(errmsg)
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html',env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
             
             ##ermind@rbrowser:/tmp$ openssl pkcs7 -in test.p7b -text  -print -noout
             #elif inputtext.startswith("-----BEGIN PKCS7-----"):
@@ -1132,7 +1327,7 @@ def analyzer_pem():
                     errtype = "error"
                     errmsg = "error: invalid pkcs7 message"
                     app.logger.info(errmsg)
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
             
             ##openssl crl -in test.crl -text -noout
             #elif inputtext.startswith("-----BEGIN X509 CRL-----"):
@@ -1149,7 +1344,7 @@ def analyzer_pem():
                     errtype = "error"
                     errmsg = "error: invalid certificate revocation list"
                     app.logger.info(errmsg)
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html', env=env, result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
 
             ##ppenssl cms -cmsout -in plain.txt.cms -print -noout -inform PEM
             #elif inputtext.startswith("-----BEGIN CMS-----"):
@@ -1168,21 +1363,209 @@ def analyzer_pem():
                     errtype = "error"
                     errmsg = "error: invalid CMS(Cryptographic Message Syntax) message"
                     app.logger.info(errmsg)
-                    return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                    return render_template( '/analyzer-pem.html', env=env, result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
 
             else:
                 flash("error: no input data")
-                return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                return render_template( '/analyzer-pem.html', env=env, result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
         except:
             flash("Exception: Invalid data or type...")
             errtype = "error"
             errmsg = "error: Fail to parse data, Please check Data/File valid or file type"
-            return render_template( '/analyzer-pem.html', result=None, errmsg=errmsg, errtype=errtype) 
+            return render_template( '/analyzer-pem.html', env=env, result=None, errmsg=errmsg, errtype=errtype) 
         
-        return render_template( '/analyzer-pem.html', result=result)    
+        return render_template( '/analyzer-pem.html', env=env, result=result)    
 
     ##GET    
-    return render_template( '/analyzer-pem.html', result=result)
+    return render_template( '/analyzer-pem.html',env=env,  result=result)
+
+
+
+@blueprint.route('/analyzer-file.html', methods=['GET', 'POST'])
+def analyzer_file():
+
+    app.logger.info('>>>>> Analyzer file START...')
+    result = None
+    inputtext = intext = intext_pem = None
+    errmsg = errtype = None
+    dataType = True
+    inType = "text" ##file
+    fileMode = "text" ##bin
+    informArg = "PEM"
+
+    isAsn1Mode = False
+    isFile = True
+    
+    if request.method == 'POST':
+        
+        dataType = request.form.get("intype", None) #crt, crl, csr...
+        action = request.form.get("action", None) ##analyze
+        if action =="clear":
+            return render_template( '/analyzer-file.html', env=env, result=None, errmsg=None, errtype=None, inputtext="")    
+
+        asn1mode_checked = request.form.get("asn1mode", None)
+        if asn1mode_checked:
+            isAsn1Modee = True
+            app.logger.info("asn1 mode: True")
+                
+        inForm = request.form.get("inform", None) ##PEM/DER
+                        
+        app.logger.info("action ==>  " + action)
+        #app.logger.info("inForm ==>  " + inForm)
+        #app.logger.info("intype ==>  " + dataType)
+
+        f = request.files.get('inputfile', None)
+        if f:
+            infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
+            f.save(infile)
+            app.logger.info("input format(FILE): " + infile)
+        else: 
+            errtype = "error"
+            errmsg = "error: No Input Data(Text/File)"
+            flash(errmsg)
+            return render_template( '/analyzer-file.html', env=env, result=None, errmsg=errmsg, errtype=errtype)    
+
+        #if True:
+        try:
+            #if textmode and inputtext.startswith("-----BEGIN CERTIFICATE-----"):
+            if isAsn1Mode:
+                cmd = "openssl asn1parse -inform %s -in \"%s\"" % (inForm, infile)
+                app.logger.info("cmd sring: " + cmd)
+                pemstr = run_cmd(cmd)
+                result = pemstr.decode('utf-8')
+                if result.startswith("Error") or result.startswith("error"):
+                    errtype, errmsg ="error", "FAIL TO ASN1PARSE"
+                    return render_template( '/analyzer-file.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                
+                return render_template( '/analyzer-file.html',env=env,  result=result, inputtext=inputtext)    
+
+            if dataType == "crt":
+                cmd = 'openssl x509 -text -noout -inform %s -in \"%s\" 2>&1' % (inForm, infile)
+                app.logger.info("binary command : " + cmd)
+                pemstr = run_cmd(cmd)
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("Certificate:"):
+                    app.logger.info("error: Invalid X509 Certificate")
+                    return render_template( '/analyzer-file.html', env=env,  result=None, errmsg="INVALID CERTIFICATE", errtype="error", inputtext=inputtext)    
+
+            #elif textmode and inputtext.startswith("-----BEGIN CERTIFICATE REQUEST-----"):
+            elif dataType == "csr":
+                cmd = "openssl req -text -noout -inform %s -in \"%s\"" % (inForm, infile)
+                app.logger.info("binary command for Certificate Signing Request: " + cmd)
+                pemstr = run_cmd(cmd)
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("Certificate Request:"):
+                    errmsg = "error: invalid CSR"
+                    app.logger.info(errmsg)
+
+            elif dataType == "rsapubkey":
+                cmd = "openssl ras -pubin -noout -text -inform %s -in \"%s\"" % (inForm, infile)
+                app.logger.info("binary command for RSA PUBKEY : " + cmd)
+                pemstr = run_cmd(cmd)
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("RSA Public-Key:"):
+                    errtype, errmsg = "error", "Invalid RSA public key" 
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-file.html', env=env, result=None, errmsg="INVALID RSA PUBLIC KEY", errtype="error", inputtext=inputtext)    
+
+            elif dataType == "rsaprikey":
+                cmd = "openssl rsa -text -noout -inform %s -in \"%s\" " % (inForm, infile)
+                app.logger.info("binary command for RSA Private Key : " + cmd)
+                pemstr = run_cmd(cmd)
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("RSA Private-Key:"):
+                    errtype, errmsg = "error", "Invalid RSA Private Key" 
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-file.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            elif dataType == "ecprikey":
+                cmd = "openssl ec -text -noout -inform %s -in \"%s\"" % (inForm, infile)
+                app.logger.info("binary command for RSA Private Key : " + cmd)
+                pemstr = run_cmd(cmd)
+                result = pemstr.decode()
+                app.logger.info("result : " + result)
+                
+                if not result.startswith("Private-Key"):
+                    errtype, errmsg = "error", "error: invalid EC Private Key" 
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-file.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            elif dataType == "enc_rsaprikey":
+                inpass = request.form.get("inpass", None)
+                if not inpass:
+                    errtype, errmsg = "inpass", "error: no input password"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-file.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                else:
+                    passin_arg = "pass:" + inpass
+
+                cmd = "openssl rsa -text -noout -inform %s -in \"%s\" -passin %s" % (inForm, infile, passin_arg)
+                app.logger.info("binary command for Encrypted RSA Private Key : " + cmd)
+                pemstr = run_cmd(cmd)
+
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("RSA Private-Key:"):
+                    errtype, errmsg = "error", "error: invalid encrypted RSA Private Key"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-file.html',env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+            
+            elif dataType == "pkcs7":
+                cmd = "openssl pkcs7 -text -noout -print -inform DER -in " + infile
+                app.logger.info("binary file parsing, type=PKCS7 : " + cmd)
+                pemstr = run_cmd(cmd)
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("PKCS7:"):
+                    errtype = "error"
+                    errmsg = "error: invalid pkcs7 message"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-file.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+            
+            elif dataType == "crl":
+                cmd = "openssl crl  -text -noout -inform %s -in \"%s\"" % (inForm, infile)
+                app.logger.info("binary file parsing, type=X509 CRL : " + cmd)
+                pemstr = run_cmd(cmd)
+                result = pemstr.decode('utf-8')
+                
+                if not result.startswith("Certificate Revocation List (CRL):"):
+                    errtype = "error"
+                    errmsg = "error: invalid certificate revocation list"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-file.html', env=env, result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            ##ppenssl cms -cmsout -in plain.txt.cms -print -noout -inform PEM
+            #elif inputtext.startswith("-----BEGIN CMS-----"):
+            elif dataType == "cms":
+                cmd = "openssl cms -cmsout -print -inform %s -noout -in \"%s\"" % (inForm, infile)
+                app.logger.info("binary file parsing, type=X509 CRL : " + cmd)
+                pemstr = run_cmd(cmd)
+
+                result = pemstr.decode('utf-8')
+                app.logger.info(result)
+                
+                if not result.startswith("CMS_ContentInfo:"):
+                    errtype = "error"
+                    errmsg = "error: invalid CMS(Cryptographic Message Syntax) message"
+                    app.logger.info(errmsg)
+                    return render_template( '/analyzer-file.html', env=env, result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+
+            else:
+                flash("error: no input data")
+                return render_template( '/analyzer-file.html', env=env, result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+        except:
+        #else:
+            errtype, errmsg = "error", "ERROR: FAIL TO PARSE DATA, PLEASE CHECK FILE"
+            return render_template( '/analyzer-file.html', env=env, result=None, errmsg=errmsg, errtype=errtype) 
+        
+        return render_template( '/analyzer-file.html', env=env, result=result)    
+
+    ##GET    
+    return render_template( '/analyzer-file.html',env=env,  result=result)
 
 #######################
 ## ENCRYPT 
@@ -1201,7 +1584,6 @@ def cipher_encrypt():
             flash("No file selected")    
         else:
             #filename = secure_filename(f.filename)
-            
             infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
             outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "enc")
           
@@ -1235,12 +1617,8 @@ def cipher_encrypt():
             if os.path.isfile(outfile):
                 return send_file(outfile, as_attachment=True)
 
-        
-        
-        #flash("POST cmd: " + cmd)
         return render_template( '/cipher-encrypt.html', aes_alg_list=aes_alg_list)
 
-        
     return render_template( '/cipher-encrypt.html', aes_alg_list=aes_alg_list)
 
 
@@ -1326,8 +1704,6 @@ def cipher_pubkey_encrypt():
 
    
     return render_template( '/cipher-pubkey_encrypt.html')
-
-
 
 
 #######################
@@ -1417,6 +1793,113 @@ def sign_rsa():
 
    
     return render_template( '/sign-rsa.html')
+
+
+#######################
+# Role: Sign/Verify with RSA/ECC Public Key
+# in: inputtext
+# signature 파일을 생성하고 검증하는 구조, pkeyutl을 이용한다. dgst -sign/verify는 인증서를 사용할 수 없는 한계가 있음
+# public key from : X509 Certificate / PrivateKey file
+#######################
+@blueprint.route('/sign-pubkey.html', methods=['GET', 'POST'])
+def sign_pubkey():
+
+    infile = hexdump = None
+    cmd = opts = ""
+    app.logger.info(">>> cipher: Sign with public key >>>> ")
+
+    if request.method == 'POST':
+        #서명, 검증 모두에 필요하다.
+        fin = request.files.get('inputfile', None)
+        if not fin:
+            errtype, errmsg = "fileerror", "no input file"
+            return render_template( '/sign-rsa.html', errtype=errtype, errmsg=errmsg)
+        
+        infile = os.path.join(app_config.UPLOAD_DIR, fin.filename)
+        fin.save(infile)
+
+        inform = request.form.get("inform")
+        inpass = request.form.get("inpass", None)
+        inform = request.form.get("inform", None)
+        action = request.form.get("action")
+
+        app.logger.info("message file: " + infile)
+        
+        app.logger.info("key format  : " + inform)
+        app.logger.info("action      : " + action)
+        
+        
+        #서명, 검증 모두에 필요하다.
+        fk = request.files.get("keyfile", None)
+        if not fk:
+            return render_template( '/sign-pubkey.html', errtype="keyfileerror", errmsg="no certificate/key file")
+        keyfile = os.path.join(app_config.UPLOAD_DIR, fk.filename)
+        fk.save(keyfile)
+        app.logger.info("key     file: " + keyfile)
+
+        dgstfile = infile +".dgst"
+        cmd = 'openssl dgst -binary -sha256 %s > %s' % (infile, dgstfile)
+        run_cmd(cmd)
+
+        if not os.path.isfile(dgstfile):
+            return render_template( '/sign-pubkey.html', errtype="error", errmsg='fail to generate message digest for %s' % os.path.basename(infile))
+
+        if action == "sign":
+
+            outfile = infile + ".sig"
+            cmd = 'openssl pkeyutl -sign  -in \"%s\" -inkey \"%s\" -keyform %s -out \"%s\"' % (dgstfile, keyfile, inform, outfile)
+
+            if inpass:
+                passin = " -passin pass:%s" % inpass
+                cmd = cmd + passin 
+
+            app.logger.info('sign.command: %s' % cmd)
+            
+        elif action == "verify":
+
+            #outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "org")
+            #extension = os.path.splitext(f.filename)[1][1:]
+
+            #검증에 서명파일-sigfile 필요.
+            fs = request.files.get("sigfile", None)
+            if not fs:
+                return render_template( '/sign-pubkey.html', errtype="sigfileerror", errmsg="no signature file to verify")
+            sigfile = os.path.join(app_config.UPLOAD_DIR, fs.filename)
+            fs.save(sigfile)
+            app.logger.info("signature file: " + sigfile)
+
+            """if verify_opt == "hexdump":
+                opts = " -hexdump"
+            elif verify_opt == "file":
+                opts = " -out \"%s\"" % outfile
+            else:
+                opts = " -hexdump"
+            """
+
+            cmd = 'openssl pkeyutl -verify -in \"%s\" -certin -inkey \"%s\" -keyform %s -sigfile %s'  % (dgstfile, keyfile, inform, sigfile)
+
+            app.logger.info('verify.command: %s' % cmd)
+            
+        else:
+            flash("error: invalid command!")
+            return render_template( '/sign-pubkey.html')
+
+        result = run_cmd(cmd)
+        app.logger.info("run.command: " + result.decode())
+
+        if action == "verify":
+            verify_message = result
+            return render_template( '/sign-pubkey.html', verify_message=verify_message.decode())
+        #elif (action == "verify" and verify_opt == "file") or action == "sign":
+
+        if os.path.isfile(outfile):
+            return send_file(outfile, as_attachment=True)
+        
+        return render_template( '/sign-pubkey.html')
+
+   
+    return render_template( '/sign-pubkey.html')
+
 
 
 @blueprint.route('/generator-base64.html', methods=['GET', 'POST'])
