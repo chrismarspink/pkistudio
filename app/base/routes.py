@@ -170,6 +170,7 @@ def route_default():
     return render_template( '/index.html' )
 
 ## Login & Registration
+"""
 @blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm(request.form)
@@ -193,6 +194,11 @@ def login():
 
     if not current_user.is_authenticated:
         return render_template( 'accounts/login.html', form=login_form)
+    return redirect(url_for('home_blueprint.index'))
+"""
+
+@blueprint.route('/login', methods=['GET', 'POST'])
+def login():
     return redirect(url_for('home_blueprint.index'))
 
 @blueprint.route('/register', methods=['GET', 'POST'])
@@ -767,7 +773,6 @@ def docker_main():
 def k8s_main():
 
     kConfigList = {}
-    kNodeList = {}
     konfig.load_kube_config()
     result = "k8s"
     app.logger.info("Supported APIs (* is preferred version):")

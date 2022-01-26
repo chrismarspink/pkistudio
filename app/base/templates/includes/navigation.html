@@ -10,7 +10,7 @@
 					<button class="navbar-toggler sidenav-toggler ml-auto" type="button" data-toggle="collapse" data-target="collapse" aria-expanded="false" aria-label="Toggle navigation"></button>
 					-->
 					<a href="index.html" class="logo">
-						<div class="bg-gradient-primary text-white"  alt="navbar brand" class="navbar-brand"><i class="fa fa-snowflake"></i>&nbspPKI.STUDIO &nbsp</div>
+						<div class="bg-gradient-primary text-white"  alt="navbar brand" class="navbar-brand"><i class="fa fa-snowflake"></i>&nbspCRYPTODECODE&nbsp</div>
 					</a>
 					
 					
@@ -35,7 +35,7 @@
 			<!-- Navbar Header -->
 			<nav class="navbar navbar-header navbar-expand-lg" data-background-color="blue2">
 				
-				{% if current_user.is_authenticated %}
+				{% if not current_user.is_authenticated %}
 				<div class="container-fluid">
 					<div class="collapse" id="search-nav">
 						<form class="navbar-left navbar-form nav-search mr-md-3">
