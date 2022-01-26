@@ -15,83 +15,20 @@
 						<h2 class="text-white pb-2 fw-bold">PKI.STUDIO</h2>
 						<h5 class="text-white op-7 mb-2">Cryptography & PKI utility collection</h5>
 					</div>
-					<div class="ml-md-auto py-2 py-md-0">
+					<!--div class="ml-md-auto py-2 py-md-0">
 						<a href="#" class="btn btn-white btn-border btn-round mr-2">Tutorials</a>
 						<a href="#" class="btn btn-secondary btn-round">Homepage</a>
-					</div>
+					</div-->
 				</div>
 			</div>
 		</div>
 		<div class="page-inner mt--5">
-			<div class="row mt--2">
-				<div class="col-md-6">
-					<div class="card full-height">
-						<div class="card-body">
-							<div class="card-title">Overall statistics</div>
-							<div class="card-category">Daily information about statistics in system</div>
-							<div class="d-flex flex-wrap justify-content-around pb-2 pt-4">
-								<div class="px-2 pb-2 pb-md-0 text-center">
-									<div id="circles-1"></div>
-									<h6 class="fw-bold mt-3 mb-0">New Users</h6>
-								</div>
-								<div class="px-2 pb-2 pb-md-0 text-center">
-									<div id="circles-2"></div>
-									<h6 class="fw-bold mt-3 mb-0">Sales</h6>
-								</div>
-								<div class="px-2 pb-2 pb-md-0 text-center">
-									<div id="circles-3"></div>
-									<h6 class="fw-bold mt-3 mb-0">Subscribers</h6>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="card full-height">
-						<div class="card-body">
-							<div class="card-title">Total income & spend statistics</div>
-							<div class="row py-3">
-								<div class="col-md-4 d-flex flex-column justify-content-around">
-									<div>
-										<h6 class="fw-bold text-uppercase text-success op-8">Total Income</h6>
-										<h3 class="fw-bold">$9.782</h3>
-									</div>
-									<div>
-										<h6 class="fw-bold text-uppercase text-danger op-8">Total Spend</h6>
-										<h3 class="fw-bold">$1,248</h3>
-									</div>
-								</div>
-								<div class="col-md-8">
-									<div id="chart-container">
-										<canvas id="totalIncomeChart"></canvas>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+			
 			<div class="row">
-				<div class="col-md-8">
+				<!--div class="col-md-8">
 					<div class="card">
 						<div class="card-header">
-							<div class="card-head-row">
-								<div class="card-title">User Statistics</div>
-								<div class="card-tools">
-									<a href="#" class="btn btn-info btn-border btn-round btn-sm mr-2">
-										<span class="btn-label">
-											<i class="fa fa-pencil"></i>
-										</span>
-										Export
-									</a>
-									<a href="#" class="btn btn-info btn-border btn-round btn-sm">
-										<span class="btn-label">
-											<i class="fa fa-print"></i>
-										</span>
-										Print
-									</a>
-								</div>
-							</div>
+							
 						</div>
 						<div class="card-body">
 							<div class="chart-container" style="min-height: 375px">
@@ -100,8 +37,8 @@
 							<div id="myChartLegend"></div>
 						</div>
 					</div>
-				</div>
-				<div class="col-md-4">
+				</div-->
+				<!--div class="col-md-4">
 					<div class="card card-primary">
 						<div class="card-header">
 							<div class="card-title">Daily Sales</div>
@@ -126,14 +63,15 @@
 							</div>
 						</div>
 					</div>
-				</div>
+				</div-->
 			</div>
+
 			<div class="row row-card-no-pd">
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
 							<div class="card-head-row card-tools-still-right">
-								<h4 class="card-title">Users Geolocation</h4>
+								<h4 class="card-title">Cryptography Service collection</h4>
 								<div class="card-tools">
 									<button class="btn btn-icon btn-link btn-primary btn-xs"><span class="fa fa-angle-down"></span></button>
 									<button class="btn btn-icon btn-link btn-primary btn-xs btn-refresh-card"><span class="fa fa-sync-alt"></span></button>
@@ -141,105 +79,127 @@
 								</div>
 							</div>
 							<p class="card-category">
-							Map of the distribution of users around the world</p>
+							Cryptographic data encode/decode, en/decrypt and sign/verify</p>
 						</div>
 						<div class="card-body">
 							<div class="row">
-								<div class="col-md-6">
+								<div class="col-md-8">
 									<div class="table-responsive table-hover table-sales">
 										<table class="table">
 											<tbody>
 												<tr>
 													<td>
-														<div class="flag">
-															<img src="/static/assets/img/flags/id.png" alt="indonesia">
+														<p>Analyzer</p>
+													</td>
+													<td>
+														<div class="form-group">
+														<p>Analyze PEM text and output result. PEM data can be CSR, certificate, public/private key, pkcs7, pkcs12, CRL, CMS date</p>
+															<a a href="/analyzer-pem.html" class="btn btn-info btn-xs  btn-round" role="button">PEM analyser</a>
+															<a a href="/analyzer-file.html" class="btn btn-info btn-xs  btn-round" role="button">PEM/DER file analyser</a>
+															<a a href="/analyzer-pkcs12.html" class="btn btn-info btn-xs  btn-round" role="button">PKCS12 analyser</a>
+															<a a href="/analyzer-jks.html" class="btn btn-info btn-xs  btn-round" role="button">JKS file analyzer</a>
 														</div>
 													</td>
-													<td>Indonesia</td>
-													<td class="text-right">
-														2.320
+												</tr>
+
+												<tr>
+													<td>
+														<p>Encrypt/Decrypt</p>
 													</td>
-													<td class="text-right">
-														42.18%
+													<td>
+														<div class="form-group">
+															<p>You can encrypt your files and download them. Symmetric key encryption performs encryption and decryption with the same password, but in RSA, encryption is possible with a public key and decryption with a private key is only possible.</p>
+															<a a href="/cipher-encrypt.html" class="btn btn-default btn-xs btn-round" role="button">Symmetric Key Encryption</a>
+															<a a href="/cipher-pubkey_encrypt.html" class="btn btn-default btn-xs btn-round" role="button">Public Key Encryption</a>
+															
+														</div>
+													</td>
+												</tr>
+
+												<tr>
+													<td>
+														<p>Sign/Verify</p>
+													</td>
+													<td>
+														<div class="form-group">
+															<p>Provides file signature and signature verification function using public key algorithm. After hashing the file using the SHA256 algorithm, it is signed with the private key or verified with the public key. RSA signatures can be signed/verified without a hash </p>
+															<a a href="/sign-pubkey.html" class="btn btn-primary btn-xs btn-round" role="button">공개키 서명/검증</a>
+															<a a href="/sign-rsa.html" class="btn btn-primary btn-xs btn-round" role="button">RSSA 서명/검증</a>
+															
+														</div>
 													</td>
 												</tr>
 												<tr>
 													<td>
-														<div class="flag">
-															<img src="/static/assets/img/flags/us.png" alt="united states">
+														<p>Generator</p>
+													</td>
+													<td>
+														<div class="form-group">
+															<p>BASE64, message digest/HMAC, RSA/ECC private key generator.</p>
+															<a a href="/generator-base64.html" class="btn btn-default btn-xs btn-round" role="button">BASE64</a>
+															<a a href="/sgenerator-digest.html" class="btn btn-default btn-xs btn-round" role="button">Message Digest/HMAC</a>
+															<a a href="/generator-privatekey.html" class="btn btn-default btn-xs btn-round" role="button">RSA Private Key</a>
+															<a a href="/generator-ecc_privatekey.html" class="btn btn-default btn-xs btn-round" role="button">ECC Private Key</a>
+															<a a href="/generator-ecc_test_key.html" class="btn btn-default btn-xs btn-round" role="button">ECC Private Key with Parameter</a>
+															
 														</div>
 													</td>
-													<td>USA</td>
-													<td class="text-right">
-														240
-													</td>
-													<td class="text-right">
-														4.36%
-													</td>
 												</tr>
+												
 												<tr>
 													<td>
-														<div class="flag">
-															<img src="/static/assets/img/flags/au.png" alt="australia">
+														<p>PKIX</p>
+													</td>
+													<td>
+														<div class="form-group">
+															<p>Provides PKIX object creation and verification function</p>
+															<a a href="/pkix-generate_csr.html" class="btn btn-secondary btn-xs btn-round" role="button">CSR Generator</a>
+															<a a href="/pkix-encrypt_privatekey.html" class="btn btn-secondary btn-xs btn-round" role="button">Encrypt with Public Key Algorithm</a>
+															<a a href="/pkix-verify_csr.html" class="btn btn-secondary btn-xs btn-round" role="button">CSR Verifier</a>
+															<a a href="/pkix-verify_certificate.html" class="btn btn-secondary btn-xs btn-round" role="button">Certificate Verifier</a>
 														</div>
 													</td>
-													<td>Australia</td>
-													<td class="text-right">
-														119
-													</td>
-													<td class="text-right">
-														2.16%
-													</td>
 												</tr>
+												
 												<tr>
 													<td>
-														<div class="flag">
-															<img src="/static/assets/img/flags/ru.png" alt="russia">
-														</div>
+														<p>SSL/TLS</p>
 													</td>
-													<td>Russia</td>
-													<td class="text-right">
-														1.081
-													</td>
-													<td class="text-right">
-														19.65%
-													</td>
-												</tr>
-												<tr>
 													<td>
-														<div class="flag">
-															<img src="/static/assets/img/flags/cn.png" alt="china">
+														<div class="form-group">
+															<p>SSL/TLS 사이트에 접속하여 인증서를 추출하는 기능 제공</p>
+															<a a href="/ssl-getcert.html" class="btn btn-warning btn-xs btn-round" role="button">SSL/TLS 인증서 추출</a>
 														</div>
 													</td>
-													<td>China</td>
-													<td class="text-right">
-														1.100
-													</td>
-													<td class="text-right">
-														20%
-													</td>
 												</tr>
-												<tr>
-													<td>
-														<div class="flag">
-															<img src="/static/assets/img/flags/br.png" alt="brazil">
-														</div>
-													</td>
-													<td>Brasil</td>
-													<td class="text-right">
-														640
-													</td>
-													<td class="text-right">
-														11.63%
-													</td>
-												</tr>
+												
 											</tbody>
 										</table>
 									</div>
 								</div>
-								<div class="col-md-6">
-									<div class="mapcontainer">
-										<div id="map-example" class="vmap"></div>
+								<div class="col-md-4">
+									<div class="card card-post card-round">
+										<img class="card-img-top" src="/static/assets/img/marvin-meyer-SYTO3xs06fU-unsplash.jpg" alt="Card image cap">
+										<!--div class="card-body">
+											<div class="d-flex">
+												<div class="avatar">
+													<img src="/static/assets/img/profile2.jpg" alt="..." class="avatar-img rounded-circle">
+												</div>
+												<div class="info-post ml-2">
+													<p class="username">Joko Subianto</p>
+													<p class="date text-muted">20 Jan 18</p>
+												</div>
+											</div>
+											<div class="separator-solid"></div>
+											<p class="card-category text-info mb-1"><a href="#">Design</a></p>
+											<h3 class="card-title">
+												<a href="#">
+													Best Design Resources This Week
+												</a>
+											</h3>
+											<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+											<a href="#" class="btn btn-primary btn-rounded btn-sm">Read More</a>
+										</div-->
 									</div>
 								</div>
 							</div>
@@ -247,7 +207,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="row">
+			<!--div class="row">
 				<div class="col-md-4">
 					<div class="card">
 						<div class="card-header">
@@ -395,8 +355,8 @@
 						</div>
 					</div>
 				</div>
-			</div>
-			<div class="row">
+			</div-->
+			<!--div class="row">
 				<div class="col-md-6">
 					<div class="card full-height">
 						<div class="card-header">
@@ -520,7 +480,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
+			</div-->
 		</div>
 	</div>
 

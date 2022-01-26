@@ -1,0 +1,164 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Sign/Verify {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">Sign/Verify</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Sign/Verify</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Public Key</a>
+					</li>
+				</ul>
+			</div>
+            
+            {% if errtype and errmsg %}
+			<div class="alert alert-danger">
+				<button type="button" class="close" data-dismiss="alert">&times;</button>
+					ERROR: {{errmsg }}
+			</div>
+			{% endif %}
+
+			<div class="row">
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Sign to file with rsa/ecc private key</h4>
+							
+						</div>
+						<div class="card-body">
+							<form method="post" action="" enctype="multipart/form-data">
+
+								<div class="form-group">
+									<label for="exampleFormControlFile1">Message File for sign</label>
+								    <input type="file" name="inputfile" class="form-control-file" id="inputfile">
+									{% if errtype == 'inputfileerror' %}
+										<p class="text-danger">Error : {{ errmsg }}</p>
+									{% endif %}
+								</div>
+
+								<div class="form-group">
+									<label for="exampleFormControlFile1">Signagture File for verification</label>
+								    <input type="file" name="sigfile" class="form-control-file" id="sigfile">
+									{% if errtype == 'sigfileerror' %}
+									<p class="text-danger">Error : {{ errmsg }}</p>
+									{% endif %}
+								</div>
+
+								<div class="form-group">
+									<label for="exampleFormControlFile1">Key File(Certificate/Private Key)</label>
+								    <input type="file" name="keyfile" class="form-control-file" id="keyfile">
+									{% if errtype == 'keyfileerror' %}
+										<p class="text-danger">Error : {{ errmsg }}</p>
+									{% endif %}
+								</div>
+
+								
+
+								<div class="form-check">
+									<label>Certificate/Private Key File Format: </label>
+									<label class="form-radio-label">
+										<input class="form-radio-input" type="radio" name="inform" value="PEM" checked="">
+										<span class="form-radio-sign">PEM</span>
+									</label>
+
+									<label class="form-radio-label">
+										<input class="form-radio-input" type="radio" name="inform" value="DER" >
+										<span class="form-radio-sign">DER</span>
+									</label>
+								</div>
+
+
+                                <!--div class="form-check">
+									<label>Verification option: </label>
+									<label class="form-radio-label">
+										<input class="form-radio-input" type="radio" name="verifyopt" value="file" checked="">
+										<span class="form-radio-sign">Save verify result to file</span>
+									</label>
+
+									<label class="form-radio-label">
+										<input class="form-radio-input" type="radio" name="verifyopt" value="hexdump" >
+										<span class="form-radio-sign">HEX Dump verify result</span>
+									</label>
+								</div-->
+
+
+								
+								<div class="form-group">
+									<label for="password">Input password for sign</label>
+									<input type="password" class="form-control" id="inpass"  name="inpass" placeholder="Private key password">
+									{% if errtype == 'inpasserror' %}
+									<p class="text-danger">Error : {{ errmsg }}</p>
+									{% endif %}
+								</div>
+								
+								<div class="form-group">
+										<button class="btn btn-primary" type="submit" name="action" value="sign"> <span class="btn-label"><i class="fas fa-lock"></i></span>
+											Sign with Private Key
+										</button>
+
+		    							<button class="btn btn-primary" type="submit" name="action" value="verify" ><span class="btn-label"><i class="fas fa-check-circle"></i></span>
+											Verify with X509 Certificate
+										</button>
+								</div>
+						    </form>
+						</div>
+					</div>
+				</div>
+
+				
+			</div>
+
+            {%if verify_message%}
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+
+                            <div class="card-header">
+                                <h4 class="card-title">Verification Result</h4>
+                            </div>
+                            <div class="card-body">
+                                <form method="post" action="" enctype="multipart/form-data">
+                                    <div class="form-group">
+                                            <pre>{{verify_message}}</pre>
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+			{%endif%}
+            
+		</div>
+	</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+
+{% endblock javascripts %}

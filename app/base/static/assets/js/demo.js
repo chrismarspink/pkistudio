@@ -18,12 +18,12 @@ Circles.create({
 //Notify
 $.notify({
 	icon: 'flaticon-alarm-1',
-	title: 'Atlantis Lite',
-	message: 'Free Bootstrap 4 Admin Dashboard',
+	title: 'PKI.STUDIO V1.0',
+	message: 'Free cryptography service tools',
 },{
 	type: 'info',
 	placement: {
-		from: "bottom",
+		from: "top",
 		align: "right"
 	},
 	time: 1000,

@@ -31,10 +31,20 @@
 					</li>
 				</ul>
 			</div>
-			<div class="row">
-							
-							
 
+
+
+			{% if errtype and errmsg %}
+ 			<div class="alert alert-warning">
+ 				<button type="button" class="close" data-dismiss="alert">&times;</button>
+ 					ERROR: {{ errmsg }}
+ 			</div>
+ 			{% endif %}
+
+
+
+			<div class="row">
+			
 				<div class="col-md-12">
 					<div class="card">
 						<div class="card-header">
@@ -79,32 +89,33 @@
 
 								<p class="demo">
 									<div class="form-group">
-										<button class="btn btn-primary btn-xs" type="submit" name="download" value="usercert" {% if usercert_pem %} NONE {% else %} disabled {% endif %}>
+										<button class="btn btn-primary btn-xs" type="submit" name="action" value="download_usercert" {% if usercert_pem %} NONE {% else %} disabled {% endif %}>
 											<span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-											User Certificate
+											Download User Certificate
 										</button>
 									
-										<button class="btn btn-warning btn-xs" type="submit" name="download" value="userkey"  {% if userkey_pem %} NONE {% else %} disabled {% endif %}>
+										<button class="btn btn-warning btn-xs" type="submit" name="action" value="download_userkey"  {% if userkey_pem %} NONE {% else %} disabled {% endif %}>
 											<span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-											Private Key
+											Download Private Key
 										</button>
 									
-										<button class="btn btn-secondary btn-xs" type="submit"  name="download" value="cacert" {% if cacert_pem %} NONE {% else %} disabled {% endif %}>
+										<button class="btn btn-secondary btn-xs" type="submit"  name="action" value="download_cacert" {% if cacert_pem %} NONE {% else %} disabled {% endif %}>
 											<span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-											CA Certificate
+											Download CA Certificate
 										</button>
 									
-										<button class="btn btn-secondary btn-xs" type="submit" name="act_pkcs12" value="generate">
+										<!--나중에 추가합니다. -->
+										<!--button class="btn btn-secondary btn-xs" type="submit" name="act_pkcs12" value="generate">
 											<span class="btn-label"><i class="fas flaticon-box-2"></i></span>
 											Generate PKCS12 file
-										</button>
+										</button-->
 									</div>
 								</p>
 
-								<div class="form-group">
+								<!--div class="form-group">
 									<label for="password">Output Password</label>
 									<input type="password" class="form-control" id="password" placeholder="Password" name="outpass">
-								</div>
+								</div-->
 
 								<div class="form-group">
 									<ul class="nav nav-pills nav-secondary" id="pills-tab" role="tablist">
@@ -120,73 +131,16 @@
 									</ul>
 									<div class="tab-content mt-2 mb-3" id="pills-tabContent">
 										<div class="tab-pane fade show active" id="pkcs12-cert" role="tabpanel" aria-labelledby="pills-home-tab">
-											
-												<textarea class="form-control" id="pem-data-parsed" rows="10" name="usercert_pem">{{usercert_pem}}</textarea>
-
+											<textarea class="form-control" id="pem-data-parsed" rows="10" name="usercert_pem" style="{{env.textarea_style}}">{{usercert_pem}}</textarea>
 										</div>
 										<div class="tab-pane fade" id="pkcs12-key" role="tabpanel" aria-labelledby="pills-profile-tab">
-											
-												<textarea class="form-control" id="pem-data-parsed" rows="10" name="userkey_pem">{{userkey_pem}}</textarea>
-											
+											<textarea class="form-control" id="pem-data-parsed" rows="10" name="userkey_pem"  style="{{env.textarea_style}}">{{userkey_pem}}</textarea>
 										</div>
 										<div class="tab-pane fade" id="pkcs12-cacert" role="tabpanel" aria-labelledby="pills-contact-tab">
-											
-												<textarea class="form-control" id="pem-data-parsed" rows="10" name="cacert_pem">{{cacert_pem}}</textarea>
-											
+											<textarea class="form-control" id="pem-data-parsed" rows="10" name="cacert_pem"  style="{{env.textarea_style}}">{{cacert_pem}}</textarea>
 										</div>
 									</div>
 								</div>	
-
-								<!--p class="demo">
-									<div class="form-group">
-										<button class="btn btn-primary btn-xs" type="submit" {% if usercert_pem %} NONE {% else %} disabled {% endif %}>
-											<span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-											User Certificate
-										</button>
-									
-										<button class="btn btn-primary btn-xs" type="submit" {% if userkey_pem %} NONE {% else %} disabled {% endif %}>
-											<span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-											Private Key
-										</button>
-									
-										<button class="btn btn-primary btn-xs" type="submit" {% if cacert_pem %} NONE {% else %} disabled {% endif %}>
-											<span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-											CA Certificate
-										</button>
-									
-										<button class="btn btn-secondary btn-xs" type="submit" name="act_pkcs12" value="generate">
-											<span class="btn-label"><i class="fas flaticon-box-2"></i></span>
-											Generate PKCS12 file
-										</button>
-									</div>
-								</p-->
-
-							<!--p class="demo">
-								<div class="form-group">
-									<label for="defaultSelect">User Certificate</label>
-								</div>
-								<div class="form-group">
-								    <textarea class="form-control" id="pem-data-parsed" rows="5" name="usercert_pem">{{usercert_pem}}</textarea>
-							    </div>
-							</p>
-
-							<p class="demo">
-								<div class="form-group">
-									<label for="defaultSelect">Private Key</label>
-								</div>
-								<div class="form-group">
-								    <textarea class="form-control" id="pem-data-parsed" rows="5" name="userkey_pem">{{userkey_pem}}</textarea>
-							    </div>
-							</p>
-
-							<p class="demo">
-								<div class="form-group">
-									<label for="defaultSelect">CA Certificate</label>
-								</div>
-								<div class="form-group">
-								    <textarea class="form-control" id="pem-data-parsed" rows="5" name="cacert_pem">{{cacert_pem}}</textarea>
-							    </div>
-							</p-->
 
 							
 						</form>
@@ -195,46 +149,7 @@
 					</div>
 				</div>
 
-				<!--div class="col-md-12">
-					<div class="card">
-						<div class="card-header">
-							<h4 class="card-title">Private Key</h4>
-						</div>
-						<div class="card-body">
-							<p class="demo">
-								<div class="form-group">
-								    <textarea class="form-control" id="pem-data-parsed" rows="5"></textarea>
-							    </div>
-								<div class="form-group">
-									<button class="btn btn-default"><span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-										Download
-									</button>
-							    </div>
-							</p>
-						</div>
-					</div>
-				</div>
 
-				<div class="col-md-12">
-					<div class="card">
-						<div class="card-header">
-							<h4 class="card-title">CA Certificate</h4>
-						</div>
-						<div class="card-body">
-							<p class="demo">
-								<div class="form-group">
-								    <textarea class="form-control" id="pem-data-parsed" rows="5"></textarea>
-							    </div>
-								<div class="form-group">
-									<button class="btn btn-default"><span class="btn-label"><i class="fas fa-arrow-down"></i></span>
-										Download
-									</button>
-							    </div>
-							</p>
-						</div>
-					</div>
-				</div-->
-				
 			</div>
 		</div>
 	</div>

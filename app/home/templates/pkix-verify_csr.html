@@ -1,0 +1,136 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} PKIX {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">Verify Certificate Signing Request(CSR)</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">PKIX</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Verify CSR</a>
+					</li>
+				</ul>
+				
+			</div>
+
+			{% if errtype and errmsg %}
+ 			<div class="alert alert-warning">
+ 				<button type="button" class="close" data-dismiss="alert">&times;</button>
+ 					ERROR: {{ errmsg }}
+ 			</div>
+ 			{% endif %}
+
+
+
+			<div class="row">
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Verify CSR</h4>
+						</div>
+
+						<div class="card-body n-5">
+							<form method="post" action="" enctype="multipart/form-data">	
+								<div class="form-group">
+									<label for="exampleFormControlFile1">PEM CSR</label>
+									<textarea class="form-control" id="pem-data" rows="10" name="inputtext">{{inputtext}}</textarea>
+								</div>
+
+								<div class="form-group">
+									<details>
+										<summary>
+											CSR(Certificate Sigining Request) 데이터 검증
+										</summary>
+										<span>
+											<ul>
+												<li>CSR 헤더</li>
+												<li>&nbsp&nbsp&nbsp-----BEGIN CERTIFICATE REQUEST-----</code></li>
+												<li>&nbsp&nbsp&nbsp....</code></li>
+												<li>&nbsp&nbsp&nbsp-----END CERTIFICATE REQUEST-----</code></li>
+												<li>CSR 데아터에 포함된 서명값을 검증합니다. </li>
+												<li>서명값이 CSR에 포함된 공개키와 대응되는 개인키로 서명된 것인지 확인할 수 있습니다.</code>)</li>
+											</ul>
+										</span>
+
+									</details>
+								</div>
+
+								<div class="form-group">
+									<div class="form-check">
+										<label class="form-check-label">
+											<input class="form-check-input" type="checkbox" name="show" value="details">
+											<span class="form-check-sign">Show details</span>
+										</label>
+									</div>
+								</div>
+							
+
+								<div class="form-group">
+										<button class="btn btn-primary" type="submit" name="action" value="verify"><span class="btn-label"><i class="fa fa-check"></i></span>
+											Verify
+										</button>
+								</div>
+
+							
+							</form>
+
+						</div>
+					</div>
+				</div>
+
+				{%if result %}
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Analyze Result</h4>
+						</div>
+						<div class="card-body">
+								<div class="form-group">
+									<pre>{{result}}</pre>
+							    </div>
+								{%if details%}
+								<div class="form-group">
+									<pre>{{details}}</pre>
+							    </div>
+								{%endif%}
+						</div>
+					</div>
+				</div>
+				{%endif%}
+				
+				
+			</div>
+		</div>
+	</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+
+{% endblock javascripts %}

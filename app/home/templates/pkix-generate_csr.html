@@ -8,6 +8,7 @@
 {% block content %}
 
 	<div class="content">
+		<form method="post" action="" enctype="multipart/form-data">
 		<div class="page-inner">
 			<div class="page-header">
 				<h4 class="page-title">Certificate Signing Request</h4>
@@ -32,7 +33,15 @@
 				</ul>
 			</div>
 
-			<form method="post" action="" enctype="multipart/form-data">
+			{% if errtype and errmsg %}
+ 			<div class="alert alert-danger">
+ 				<button type="button" class="close" data-dismiss="alert">&times;</button>
+ 					ERROR: {{errmsg }}
+ 			</div>
+ 			{% endif %}
+
+
+			
 			<div class="row">
 				<div class="col-md-12">
 					<div class="card">
@@ -52,9 +61,6 @@
 												<div>
 													<h5 class="mb-1"><b><a href="#">Private Key <small>File</small></a></b></h5>
 													<input type="file" name="inputfile" class="form-control-file" id="prikeyfile">
-													{% if errtype == 'inputfileerror' %}
-													<p class="text-danger">Error : {{ errmsg }}</p>
-													{% endif %}
 												</div>
 											</div>
 										</div>
@@ -98,18 +104,42 @@
 							<div class="form-group">
 								<div class="form-group">
 									<label>Distinguished Name</label>
-									<input type="text" class="form-control" placeholder="/C=KR/CN=user/emailAddress=user@email.com" aria-label="dn" aria-describedby="basic-addon1">
-									<p class="text-primary">Ex) /C=KR/O=pki studio/CN=User Name/emailAddress=user@mail.addr/L=local/OU=userOrgUnut/...</p>
+									<input type="text" class="form-control" placeholder="/C=KR/CN=user/emailAddress=user@email.com" name="subj" aria-label="dn" aria-describedby="basic-addon1">
+									<div class="form-group">
+										<details>
+											<summary>
+												인증서 DN 설정 방법
+											</summary>
+											<span>
+												<div class="form-group">
+													<ul>
+														<li>사례) "/C=KR/O=pki studio/CN=User Name/emailAddress=user@mail.addr/L=local/OU=userOrgUnut/..."</li>
+														<li>DN 필드</li>
+														<ul>
+															<li>C: 국가명(Country)</li>
+															<li>ST: 주(State)</li>
+															<li>L: 지역(Locality)</li>
+															<li>O: 조직(Organization)</li>
+															<li>OU: 부서(Organization Unit))</li>
+															<li>CN: 사용자 이름(Common Name)</li>
+															<li>emailAddress: 이메일 주소(Email)</li>
+														</u>
+													</ul>
+												</div>
+											</span>
+	
+										</details>
+									</div>
 								</div>
 
 								<div class="form-group">
 									<label>Validity(days)</label>
-										<input type="text" class="form-control" placeholder="365" aria-label="days" aria-describedby="basic-addon1">
+										<input type="text" class="form-control" placeholder="365" name="days" aria-label="days" aria-describedby="basic-addon1">
 								</div>
 
 								<div class="form-group">
 									<label>Subject Alternative Name(SAN)</label>
-									<input type="text" class="form-control" placeholder="*.google.com,*.naver.com" aria-label="days" name="altname" aria-describedby="basic-addon1">
+									<input type="text" class="form-control" placeholder="*.google.com,*.naver.com" aria-label="days" name="subjectaltname" aria-describedby="basic-addon1">
 									<!--p class="text-primary">Ex) DNS:foo.bar.co.kr,DNS:www.domain.name,IP:127.50.50.50</p-->
 									<div class="form-group">
 										<details>
@@ -117,10 +147,12 @@
 												인증서 확장 필드(SubjectAltName) 설정
 											</summary>
 											<span>
-												this is span
-												<button class="btn btn-primary" type='submit' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
-													span button X509 Certificate
-												</button>
+												<div class="form-group">
+													<ul>
+														<li>인증서 확정 필드 중 Subject Alt Name 필드를 추가합니다.</li>
+														<li>기본 DN외에, DNS, IP와 같은 대체명(Alternative Name)을 추가로 포함시킬 수 있습니다.</li>
+													</ul>
+												</div>
 											</span>
 	
 										</details>
@@ -141,10 +173,10 @@
 								</div>
 			
 								<div class="form-group">
-									<button class="btn btn-primary" type='submit' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+									<button class="btn btn-primary" type='submit' name='action' value='csr'><span class="btn-label"><i class="fa fa-check"></i></span>
 										Generate CSR
 									</button>
-									<button class="btn btn-primary" type='submit' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
+									<button class="btn btn-primary" type='submit' name='action' value='certificate' id='gen_pkey'><span class="btn-label"><i class="fa fa-check"></i></span>
 										Generate X509 Certificate
 									</button>
 								</div>
@@ -172,27 +204,69 @@
 					</div><!--card-->
 
 				</div>
-				</form>
+				
 
-					{%if prikey_pem%}
+					{%if csr_pem%}
 						<div class="card">
 							<div class="card-header">
-								<h4 class="card-title">Private Key</h4>
+								<h4 class="card-title">CSR PEM</h4>
 							</div>
 							<div class="card-body">
-								<pre>{{prikey_pem}}</pre>
+								<div class="form-group">
+									<textarea class="form-control" id="pem-data-parsed" rows="5" name="csr_pem" style="{{env.textarea_style}}">{% autoescape false %}{{csr_pem}}{% endautoescape %}</textarea>
+								</div>
+								<div class="form-group">
+									<button class="btn btn-secondary btn-xs" type='submit' name="action" value='download_csr_pem'><span class="btn-label"><i class="fa fa-check"></i></span>Download</button>
+								</div>
 							</div>	
+							
 						</div>
 					{%endif%}
 
-					{%if pubkey_pem%}
+					{%if csr_pem_text%}
 						<div class="card">
 							<div class="card-header">
-								<h4 class="card-title">Public Key</h4>
+								<h4 class="card-title">CSR TEXT</h4>
 							</div>
 							<div class="card-body">
-								
-								<pre>{{pubkey_pem}}</pre>
+								<div class="form-group">
+									<textarea class="form-control" id="pem-data-parsed" rows="10" name="csr_pem_text" style="{{env.textarea_style}}">{% autoescape false %}{{csr_pem_text}}{% endautoescape %}</textarea>
+								</div>
+								<div class="form-group">
+									<button class="btn btn-secondary btn-xs" type='submit' name="action" value='download_csr_pem_text'><span class="btn-label"><i class="fa fa-check"></i></span>Download</button>
+								</div>
+							</div>	
+						</div>
+	  				{%endif%}
+
+					{%if cert_pem%}
+						<div class="card">
+							<div class="card-header">
+								<h4 class="card-title">CERTIFICATE PEM</h4>
+							</div>
+							<div class="card-body">
+								<div class="form-group">
+									<textarea class="form-control" id="pem-data-parsed" rows="5"  name="cert_pem" style="{{env.textarea_style}}">{% autoescape false %}{{cert_pem}}{% endautoescape %}</textarea>
+								</div>
+								<div class="form-group">
+									<button class="btn btn-secondary btn-xs" type='submit' name="action" value='download_cert_pem'><span class="btn-label"><i class="fa fa-check"></i></span>Download</button>
+								</div>
+							</div>	
+						</div>
+	  				{%endif%}
+
+					{%if cert_pem_text%}
+						<div class="card">
+							<div class="card-header">
+								<h4 class="card-title">CERTIFICATE TEXT</h4>
+							</div>
+							<div class="card-body">
+								<div class="form-group">
+									<textarea class="form-control" id="pem-data-parsed" rows="10" name="cert_pem_text" style="{{env.textarea_style}}">{% autoescape false %}{{cert_pem_text}}{% endautoescape %}</textarea>
+								</div>
+								<div class="form-group">
+									<button class="btn btn-secondary btn-xs" type='submit' name="action" value='download_cert_pem_text'><span class="btn-label"><i class="fa fa-check"></i></span>Download</button>
+								</div>
 							</div>	
 						</div>
 	  				{%endif%}
@@ -200,9 +274,11 @@
 					
 				</div>
 				
+			
 			</div>
 
 		</div>
+		</form>
 	</div>
 
 {% endblock content %}

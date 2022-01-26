@@ -1,0 +1,158 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} PEM Analyzer {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">PEM Data Analyzer</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Analyzer</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">PEM/DER File</a>
+					</li>
+				</ul>
+				
+			</div>
+
+			{% if errtype and errmsg %}
+ 			<div class="alert alert-warning">
+ 				<button type="button" class="close" data-dismiss="alert">&times;</button>
+ 					{{ errmsg }}
+ 			</div>
+ 			{% endif %}
+
+
+
+			<div class="row">
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Decode PRM/DER/ASN.1 File</h4>
+						</div>
+
+						<div class="card-body n-5">
+							<form method="post" action="" enctype="multipart/form-data">	
+							
+								<div class="form-group">
+									<label for="exampleFormControlFile1">Input File</label>
+									<input type="file" class="form-control-file" id="exampleFormControlFile1" name="inputfile" required>
+								</div>
+
+								<div class="form-group">
+									<label>File Type/Format</label>
+									<div class="row">
+										<div class="col-lg-8">
+											<select class="form-control form-control" id="pem_selected" name="intype">
+												<option value="crt">CRT(X.509 Certificate)</option>
+												<option value="crl">CRL(Certificate Revocation List)</option>
+												<option value="csr">CSR(Certificate Signing Request)</option>
+												<option value="csr">New CSR</option>
+												<option value="rsaprikey">RSA Private Key</option>
+												<option value="pkcs7">PKCS7</option>
+												<option value="ecpripkey">Elliptic Curve Private Key</option>
+												<option value="rsapubkey">RSA Public Key</option>
+												<option value="enc_rsaprikey">Encrypted Private Key</option>
+												<option value="cms">CMS</option>
+											</select>
+										</div>
+										<div class="col-lg-4">
+											<select class="form-control form-control" id="pem_selected" name="inform">
+												<option value="PEM">PEM</option>
+												<option value="DER">DER</option>
+											</select>
+										</div>
+										
+									</div>
+								</div>
+								
+
+
+
+								{% if errtype == 'inpass' %}
+								<div class="form-group has-error ">
+								{% else %}	
+								<div class="form-group">
+								{% endif %}	
+									<label for="password">Password</label>
+									<input type="password" class="form-control" name="inpass" id="inpass" placeholder="Input password">
+								</div>
+
+								<div class="form-check">
+									<label class="form-check-label">
+										<input class="form-check-input" type="checkbox" name="asn1mode" value="true">
+										<span class="form-check-sign">ASN.1 Parsing</span>
+									</label>
+								</div>
+
+								
+								<div class="form-group">
+									<p class="demo">
+											
+										<button class="btn btn-primary" type="submit" name="action" value="analyze"><span class="btn-label"><i class="fa fa-check"></i></span>
+											Analyze
+										</button>
+
+		    							<button class="btn btn-warning" type="submit" name="action" value="clear"><span class="btn-label"><i class="fas fa-circle-notch"></i></span>
+											Clear
+										</button>
+		
+									</p>
+								</div>
+
+							
+							</form>
+
+						</div>
+					</div>
+				</div>
+
+				{%if result %}
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Analyze Result</h4>
+						</div>
+						<div class="card-body">
+								<div class="form-group">
+									<pre>{{result}}</pre>
+							    </div>
+						</div>
+					</div>
+				</div>
+				{%endif%}
+				
+				
+			</div>
+		</div>
+	</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+
+{% endblock javascripts %}

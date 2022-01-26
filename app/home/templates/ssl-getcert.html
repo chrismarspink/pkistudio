@@ -1,0 +1,140 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} SSL/TLS {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+
+	<div class="content">
+		<div class="page-inner">
+			<div class="page-header">
+				<h4 class="page-title">Extract Server Certificate</h4>
+				<ul class="breadcrumbs">
+					<li class="nav-home">
+						<a href="#">
+							<i class="flaticon-home"></i>
+						</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">SSL/TLS</a>
+					</li>
+					<li class="separator">
+						<i class="flaticon-right-arrow"></i>
+					</li>
+					<li class="nav-item">
+						<a href="#">Extract Server Certificate</a>
+					</li>
+				</ul>
+				
+			</div>
+
+			{% if errtype and errmsg %}
+			<div class="alert alert-danger">
+				<button type="button" class="close" data-dismiss="alert">&times;</button>
+					ERROR: {{errmsg }}
+			</div>
+			{% endif %}
+
+		<form method="post" action="" enctype="multipart/form-data">	
+			<div class="row">
+			
+
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Extract Server Certificate</h4>
+						</div>
+
+						<div class="card-body n-5">
+							
+							
+								<div class="form-group">
+									<label for="url">Server URL</label>
+									<input type="text" class="form-control" name="url" id="url" placeholder="SSL/TLS Server URL">
+									<small id="emailHelp" class="form-text text-muted">This tool will help you to extract the all certificate chain of the given url or servername</small>
+								</div>
+
+								<div class="form-group">
+									<label for="port">Server URL</label>
+									<input type="number" class="form-control" name="port"  id="port" placeholder="443" value="443">
+								</div>
+
+
+
+								<div class="form-group">
+									<details>
+										<summary>
+											SSL/TLS 인증서 추출
+										</summary>
+										<span>
+											<div class="form-group">
+
+												<p class="has-line-data" data-line-start="2" data-line-end="3">Get the SSL certificate of a website using <code>openssl</code> command:</p>
+												<p class="has-line-data" data-line-start="4" data-line-end="5">A one-liner to extract the certificate from a remote server in PEM format, this time using <code>sed</code></p>
+												<pre><code class="has-line-data" data-line-start="6" data-line-end="9">echo | openssl s_client -servername **NAME** -connect **HOST:PORT** |\ sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' &gt; certificate.crt
+													</code></pre>
+													<pre><code class="has-line-data" data-line-start="10" data-line-end="12">openssl s_client -connect www.google.com:443 2&gt;/dev/null &lt;/dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'
+													</code></pre>
+												<p class="has-line-data" data-line-start="12" data-line-end="13"><strong>With SNI</strong></p>
+													<pre><code class="has-line-data" data-line-start="14" data-line-end="16">openssl s_client -showcerts -servername www.example.com -connect www.example.com:443 &lt;/dev/null
+													</code></pre>
+											</div>
+										</span>
+
+									</details>
+								</div>
+
+								<div class="form-group">
+										<button class="btn btn-primary" type="submit" name="action" value="analyze"><span class="btn-label"><i class="fa fa-check"></i></span>
+											Extract
+										</button>
+								</div>
+
+							
+						
+
+						</div>
+					</div>
+				</div>
+
+
+				{%if cert_txt%}
+				<div class="col-md-12">
+					<div class="card">
+						<div class="card-header">
+							<h4 class="card-title">Extract SSL/TLS Certificate</h4>
+						</div>
+						<div class="card-body">
+							<div class="form-group">
+								<textarea class="form-control" id="pem-data-parsed" rows="20" name="cert_txt" style="{{env.textarea_style}}">{% autoescape false %}{{cert_txt}}{% endautoescape %}</textarea>
+							</div>
+							<div class="form-group">
+								<button class="btn btn-secondary btn-xs" type='submit' name="action" value='download'><span class="btn-label"><i class="fa fa-check"></i></span>Download</button>
+						    </div>
+						</div>
+					</div>
+				</div>
+				{%endif%}
+				
+			
+			</div>
+		</form>
+		</div>
+	</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	<script src="/static/assets/js/setting-demo2.js"></script>
+
+{% endblock javascripts %}

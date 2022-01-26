@@ -1,0 +1,504 @@
+		<!-- Sidebar -->
+		<div class="sidebar sidebar-style-2">			
+			<div class="sidebar-wrapper scrollbar scrollbar-inner">
+				<div class="sidebar-content">
+
+				{% if current_user.is_authenticated %}	
+					<div class="user">
+						<!--div class="avatar-sm float-left mr-2">
+							<img src="/static/assets/img/profile.jpg" alt="..." class="avatar-img rounded-circle">
+						</div-->
+
+						<div class="avatar float-left mr-2">
+							<span class="avatar-title rounded-circle border border-white">{{ current_user.email[:2] }}</span>
+						</div>
+						<div class="info">
+							<a data-toggle="collapse" href="#collapseExample" aria-expanded="true">
+								<span>
+									{{ current_user.username }}
+									<span class="user-level">
+										{{ current_user.email }}
+									</span>
+									<span class="caret"></span>
+								</span>
+							</a>
+							<div class="clearfix"></div>
+
+							<div class="collapse in" id="collapseExample">
+								<ul class="nav">
+									<li>
+										<a href="#profile">
+											<span class="link-collapse">My Profile</span>
+										</a>
+									</li>
+									<li>
+										<a href="{{ url_for('base_blueprint.logout') }}">
+											<span class="link-collapse">Logout</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					
+					<ul class="nav nav-primary">
+						<!--li class="nav-item {% if 'index' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+								<i class="fab fa-docker"></i>
+								<p>도커/쿠버네티스</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="dashboard">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/docker-main.html">
+											<span class="sub-item">도커 SDK</span>
+										</a>
+									</li>
+									<li>
+										<a href="/k8s-main.html">
+											<span class="sub-item">쿠버네티스 SDK</span>
+										</a>
+									</li>
+								</ul>
+								
+							</div>
+						</li-->
+
+
+						<li class="nav-section">
+							<span class="sidebar-mini-icon">
+								<i class="fa fa-ellipsis-h"></i>
+							</span>
+							<h4 class="text-section">Cryptography Services</h4>
+						</li>
+
+						<li class="nav-item {% if 'analyzer-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#analyzer">
+								<i class="fas fa-list-ol"></i>
+								<p>Analyzers</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="analyzer">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/analyzer-pem.html">
+											<span class="sub-item">PEM</span>
+										</a>
+									</li>
+
+									<!--li> <a href="/analyzer-asn1.html"> <span class="sub-item">ASN.1</span> </a> </li-->
+
+									<li>
+										<a href="/analyzer-pkcs12.html">
+											<span class="sub-item">PKCS12</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/analyzer-jks.html">
+											<span class="sub-item">JKS(Java KeyStore)</span>
+										</a>
+									</li>
+
+								</ul>
+							</div>
+						</li>
+
+
+						<li class="nav-item {% if 'cipher-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#cipher">
+								<i class="fas fa-unlock-alt"></i>
+								<p>Encrypt/Decrypt</p>
+								<span class="caret"></span>
+							</a>
+
+							<div class="collapse" id="cipher">
+								<ul class="nav nav-collapse">
+									
+
+									<li>
+										<a href="/cipher-encrypt.html">
+											<span class="sub-item">Symmetric</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/cipher-pubkey_encrypt.html">
+											<span class="sub-item">RSA</span>
+										</a>
+									</li>
+									
+								</ul>
+							</div>
+						</li>
+
+						<li class="nav-item {% if 'sign-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#sign">
+								<i class="fas fa-feather-alt"></i>
+								<p>Sign/Verify</p>
+								<span class="caret"></span>
+							</a>
+												
+							<div class="collapse" id="sign">
+								<ul class="nav nav-collapse">
+									
+
+									<li>
+										<a href="/sign-pubkey.html">
+											<span class="sub-item">Public Key Sign/Verify</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/sign-rsa.html">
+											<span class="sub-item">RSA Sign/Verify</span>
+										</a>
+									</li>
+									
+								</ul>
+							</div>
+						</li>
+
+						<li class="nav-item {% if 'generator-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#generator">
+								<i class="fas fa-cube"></i>
+								<p>Generators</p>
+								<span class="caret"></span>
+							</a>
+												
+							<div class="collapse" id="generator">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/generator-base64.html">
+											<span class="sub-item">Base64</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/generator-digest.html">
+											<span class="sub-item">Digest/HMAC</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/generator-privatekey.html">
+											<span class="sub-item">RSA Key</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/generator-ecc_privatekey.html">
+											<span class="sub-item">ECC Key</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/generator-ecc_test_key.html">
+											<span class="sub-item">ECC Name/Key Pair</span>
+										</a>
+									</li>
+
+								</ul>
+							</div>
+						</li>
+
+
+						<li class="nav-item {% if 'pkix-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#pkix">
+								<i class="fas fa-bars"></i>
+								<p>PKIX</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="pkix">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/pkix-generate_csr.html">
+											<span class="sub-item">CSR Generator</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/pkix-encrypt_privatekey.html">
+											<span class="sub-item">Encrypt Private Key</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/pkix-verify_csr.html">
+											<span class="sub-item">Verify CSR</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/pkix-verify_certificate.html">
+											<span class="sub-item">Verify Certificate</span>
+										</a>
+									</li>
+
+									<!--li>
+										<a href="/pkix-generate_ss_cert.html">
+											<span class="sub-item">Verify X509 Certificate</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Verify Private Key</span>
+										</a>
+									</li>
+
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Extract Public Key</span>
+										</a>
+									</li-->
+									
+								</ul>
+							</div>
+						</li>
+
+
+						<li class="nav-item {% if 'ssl-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#ssl">
+								<i class="fas fa-bars"></i>
+								<p>SSL/TLS</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="ssl">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/ssl-getcert.html">
+											<span class="sub-item">Extract SSL Server Certificate</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+
+						</li>
+
+						<li class="nav-section">
+							<span class="sidebar-mini-icon">
+								<i class="fa fa-ellipsis-h"></i>
+							</span>
+							<h4 class="text-section">PKIZIP</h4>
+						</li>
+						<li class="nav-item {% if 'ui-' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#base">
+								<i class="fas fa-layer-group"></i>
+								<p>Base</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="base">
+								<ul class="nav nav-collapse">
+									
+									<li>
+										<a href="/ui-avatars.html">
+											<span class="sub-item">Avatars</span>
+										</a>
+									</li>
+									<li>
+										<a href="/ui-buttons.html">
+											<span class="sub-item">Buttons</span>
+										</a>
+									</li>
+									<li>
+										<a href="/ui-gridsystem.html">
+											<span class="sub-item">Grid System</span>
+										</a>
+									</li>
+									<li>
+										<a href="/ui-panels.html">
+											<span class="sub-item">Panels</span>
+										</a>
+									</li>
+									<li>
+										<a href="/ui-notifications.html">
+											<span class="sub-item">Notifications</span>
+										</a>
+									</li>
+									<li>
+										<a href="/ui-sweetalert.html">
+											<span class="sub-item">Sweet Alert</span>
+										</a>
+									</li>
+									<li>
+										<a href="/icons-fontawesome.html">
+											<span class="sub-item">Font Awesome Icons</span>
+										</a>
+									</li>
+									<li>
+										<a href="/icons-simpleline.html">
+											<span class="sub-item">Simple Line Icons</span>
+										</a>
+									</li>
+									<li>
+										<a href="/icons-flaticons.html">
+											<span class="sub-item">Flaticons</span>
+										</a>
+									</li>
+									<li>
+										<a href="/ui-typography.html">
+											<span class="sub-item">Typography</span>
+										</a>
+									</li>
+							
+								</ul>
+							</div>
+						</li>
+
+						<li class="nav-item {% if 'form' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#forms">
+								<i class="fas fa-pen-square"></i>
+								<p>Forms</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="forms">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/forms.html">
+											<span class="sub-item">Basic Form</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+
+						<li class="nav-item {% if 'tables' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#tables">
+								<i class="fas fa-table"></i>
+								<p>Tables</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="tables">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/tables-simple.html">
+											<span class="sub-item">Basic Table</span>
+										</a>
+									</li>
+									<li>
+										<a href="/tables-data.html">
+											<span class="sub-item">Datatables</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						<li class="nav-item {% if 'maps' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#maps">
+								<i class="fas fa-map-marker-alt"></i>
+								<p>Maps</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="maps">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/maps-jqvmap.html">
+											<span class="sub-item">JQVMap</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						<li class="nav-item {% if 'charts' in segment %} active {% endif %}">
+							<a data-toggle="collapse" href="#charts">
+								<i class="far fa-chart-bar"></i>
+								<p>Charts</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="charts">
+								<ul class="nav nav-collapse">
+									<li>
+										<a href="/charts.html">
+											<span class="sub-item">Chart Js</span>
+										</a>
+									</li>
+									<li>
+										<a href="/charts-sparkline.html">
+											<span class="sub-item">Sparkline</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						<li class="nav-item {% if 'widgets' in segment %} active {% endif %}">
+							<a href="/widgets.html">
+								<i class="fas fa-desktop"></i>
+								<p>Widgets</p>
+								<span class="badge badge-success">4</span>
+							</a>
+						</li>
+						<li class="nav-item">
+							<a data-toggle="collapse" href="#submenu">
+								<i class="fas fa-bars"></i>
+								<p>Menu Levels</p>
+								<span class="caret"></span>
+							</a>
+							<div class="collapse" id="submenu">
+								<ul class="nav nav-collapse">
+									<li>
+										<a data-toggle="collapse" href="#subnav1">
+											<span class="sub-item">Level 1</span>
+											<span class="caret"></span>
+										</a>
+										<div class="collapse" id="subnav1">
+											<ul class="nav nav-collapse subnav">
+												<li>
+													<a href="#">
+														<span class="sub-item">Level 2</span>
+													</a>
+												</li>
+												<li>
+													<a href="#">
+														<span class="sub-item">Level 2</span>
+													</a>
+												</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<a data-toggle="collapse" href="#subnav2">
+											<span class="sub-item">Level 1</span>
+											<span class="caret"></span>
+										</a>
+										<div class="collapse" id="subnav2">
+											<ul class="nav nav-collapse subnav">
+												<li>
+													<a href="#">
+														<span class="sub-item">Level 2</span>
+													</a>
+												</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<a href="#">
+											<span class="sub-item">Level 1</span>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+						<!--li class="mx-4 mt-2">
+                            <a target="_blank"
+                               href="https://appseed.us/admin-dashboards/flask-dashboard-atlantis-dark-pro" 
+                               class="btn btn-danger btn-block">
+                                <span class="btn-label mr-2"> <i class="fa fa-rocket"></i> </span>remote PRO Version</a> 
+						</li-->
+					</ul>
+				{% else %}
+					<ul class="nav nav-primary">
+						<li class="mx-4 mt-2">
+                            <a target="_blank"
+                               href="https://appseed.us/admin-dashboards/flask-dashboard-atlantis-dark-pro" 
+                               class="btn btn-danger btn-block">
+                                <span class="btn-label mr-2"> <i class="fa fa-rocket"></i> </span>PRO Version</a> 
+						</li>
+					</ul>
+				{% endif %}	
+				</div>
+			</div>
+		</div>
+        <!-- End Sidebar -->
+        
