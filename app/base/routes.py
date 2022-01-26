@@ -141,10 +141,9 @@ def do_openssl2(pem, *args):
 
 def do_openssl3(cmd):
     process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate(input=input)
+    stdout, stderr = process.communicate(None)
 
     if process.returncode:
-        app.logger.info("do_openssl3: returncode: " + process.returncode)
         raise Exception(stderr, cmd)
 
     return stdout, stder
@@ -283,62 +282,75 @@ def generator_ecc_test_key():
 @blueprint.route('/generator-privatekey.html', methods=['GET', 'POST'])
 def generator_privatekey():
 
-    #curves = curves = get_elliptic_curve_list()
 
     if request.method == 'POST':
-        action = request.form.get('action')
-        if action == "generate":
-            keylen = request.form.get('keylen')
+        try:
+            action = request.form.get('action')
+            if action == "generate":
+                keylen = request.form.get('keylen')
 
-            app.logger.info("action: %s, key length: %s" % (action, keylen))
+                app.logger.info("action: %s, key length: %s" % (action, keylen))
 
+                key = crypto.PKey()
+                key.generate_key(crypto.TYPE_RSA, int(keylen))
+                priv_key = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
+                prikey_pem=priv_key.decode('utf-8')
 
-            key = crypto.PKey()
-            key.generate_key(crypto.TYPE_RSA, int(keylen))
-            priv_key = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
-            prikey_pem=priv_key.decode('utf-8')
+                #pubkey = key.get_pubkey()
+                pubkey_pem = crypto.dump_publickey(crypto.FILETYPE_PEM, key)
+                pubkey_pem = pubkey_pem.decode('utf-8')
+                
 
-            #pubkey = key.get_pubkey()
-            pubkey_pem = crypto.dump_publickey(crypto.FILETYPE_PEM, key)
-            pubkey_pem = pubkey_pem.decode('utf-8')
+                ## expect 'enc'
+                encopt_checked = request.form.get("encrypt_option")
+                if encopt_checked:
+                    app.logger.info("generate_privatekey: encopt_checked: " + encopt_checked)
+                    inpass = request.form.get("inpass")
+                    if not inpass:
+                        pass
+                    inpass_arg = "pass:%s" % inpass
+                    
+                    enc_alg = request.form.get("enc_alg")
+                    cipher_arg = "-%s" % enc_alg
+
+                    enckey_pem = do_openssl(priv_key, "rsa", "-passout", inpass_arg, cipher_arg)
+                    prikey_pem = enckey_pem.decode()
+
+                else:
+                    app.logger.info("generate_privatekey: encopt_checked: disabled(None)")
+
             
-
-            ## expect 'enc'
-            encopt_checked = request.form.get("encrypt_option")
-            if encopt_checked:
-                app.logger.info("generate_privatekey: encopt_checked: " + encopt_checked)
-
-            else:
-                app.logger.info("generate_privatekey: encopt_checked: disabled(None)")
-
+                return render_template( '/generator-privatekey.html', 
+                    env=env,
+                    prikey_pem=prikey_pem, 
+                    pubkey_pem=pubkey_pem, 
+                    rsa_param=rsabits, 
+                    aes_alg_list=aes_alg_list)
         
-            return render_template( '/generator-privatekey.html', 
-                env=env,
-                prikey_pem=prikey_pem, 
-                pubkey_pem=pubkey_pem, 
-                rsa_param=rsabits, 
-                aes_alg_list=aes_alg_list)
-    
-        elif action == "download_prikey":
-            prikey_pem = request.form.get("prikey_pem")
-            app.logger.info("private key(pem): %s", prikey_pem)
+            elif action == "download_prikey":
+                prikey_pem = request.form.get("prikey_pem")
+                app.logger.info("private key(pem): %s", prikey_pem)
 
-            generator = (cell for row in prikey_pem for cell in row)
+                generator = (cell for row in prikey_pem for cell in row)
 
-            return Response(generator,
-                mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=rsa_privatekey.pem"})
-            #if os.path.isfile(outfile):
-            #    return send_file(outfile, as_attachment=True)
+                return Response(generator,
+                    mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=rsa_privatekey.pem"})
+                #if os.path.isfile(outfile):
+                #    return send_file(outfile, as_attachment=True)
 
-            return render_template( '/generator-privatekey.html', env=env, rsa_param=rsabits, aes_alg_list=aes_alg_list)
+                return render_template( '/generator-privatekey.html', env=env, rsa_param=rsabits, aes_alg_list=aes_alg_list)
 
-        elif action == "download_pubkey":
-            pubkey_pem = request.form.get("pubkey_pem")
-            app.logger.info("publice key(pem): %s", pubkey_pem)
-            generator = (cell for row in pubkey_pem for cell in row)
+            elif action == "download_pubkey":
+                pubkey_pem = request.form.get("pubkey_pem")
+                app.logger.info("publice key(pem): %s", pubkey_pem)
+                generator = (cell for row in pubkey_pem for cell in row)
 
-            return Response(generator,
-                mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=rsa_publickey.pem"})
+                return Response(generator,
+                    mimetype="text/plain", headers={"Content-Disposition":"attachment;filename=rsa_publickey.pem"})
+        except:
+            return render_template( '/generator-privatekey.html', env=env, 
+                errtype="error", errmsg="FAIL TO GENERATE PRIVATE KEY",
+                rsa_param=rsabits, aes_alg_list=aes_alg_list)
 
     return render_template( '/generator-privatekey.html', env=env, rsa_param=rsabits, aes_alg_list=aes_alg_list)
 
@@ -1088,7 +1100,7 @@ def get_pki_file_type(filename):
 @blueprint.route('/analyzer-pem.html', methods=['GET', 'POST'])
 def analyzer_pem():
 
-    app.logger.info('>>>>> Analyzer_pem START...')
+    app.logger.info('>>>>> Analyzer PEM START...')
     result = None
     inputtext = intext = intext_pem = None
     errmsg = errtype = None
@@ -1203,7 +1215,7 @@ def analyzer_pem():
                     errmsg="invalid asn.1 message"
                     return render_template( '/analyzer-pem.html', env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
                 
-                return render_template( '/analyzer-pem.html',env=env,  result=None, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
+                return render_template( '/analyzer-pem.html',env=env,  result=result, errmsg=errmsg, errtype=errtype, inputtext=inputtext)    
 
             elif dataType == "crt":
                 
@@ -1651,15 +1663,14 @@ def cipher_pubkey_encrypt():
             errtype, errmsg = "fileerror", "no input file"
             return render_template( '/cipher-pubkey_encrypt.html', errtype=errtype, errmsg=errmsg)
 
-        
-
         inform = request.form.get("inform")
         inpass = request.form.get("inpass", None)
         action = request.form.get("action")
 
         infile = os.path.join(app_config.UPLOAD_DIR, f.filename)
         f.save(infile)
-
+        #inputtext = request.form.get("inputtext", None)
+        
         kf = request.files.get("keyfile", None)
         if not kf:
             errtype, errmsg = "keyfileerror", "no certinput file"
@@ -1673,19 +1684,17 @@ def cipher_pubkey_encrypt():
         app.logger.info("action      : " + action)
             
         if action == "enc":
-
-            outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "enc")
-          
-            #derstr = do_openssl(inputtext.encode('utf-8'), b"rsautl", b"-encrypt", b"-certin", b"-inkey", infile, b"-keyform", inform)
-            cmd = 'openssl rsautl -encrypt -pkcs -certin -in \"%s\" -inkey \"%s\" -out \"%s\"' % (infile, keyfile, outfile)
+            outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "pem")
+            cmd = 'openssl cms -encrypt -in \"%s\" -recip \"%s\" -out \"%s\" -outform PEM' % (infile, keyfile, outfile)
+            #do_openssl("rsautl", "-encrypt", "-pkcs", "-certin", "-inkey", keyfile, "-out", outfilem, "-keyform", inform)
             app.logger.info('enc.command: %s' % cmd)
             
         elif action == "dec":
-
-            outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "org")
-            extension = os.path.splitext(f.filename)[1][1:]
-
-            cmd = 'openssl rsautl -decrypt -in \"%s\" -out \"%s\" -inkey \"%s\" -keyform %s -pkcs' % (infile, outfile, keyfile, inform)
+            outfile = os.path.join(app_config.DOWNLOAD_DIR, f.filename + "." + "decrypted")
+            #outfile = os.path.join(app_config.DOWNLOAD_DIR, "decrypted.dat")
+            #extension = os.path.splitext(f.filename)[1][1:]
+            cmd = 'openssl cms -decrypt -in \"%s\" -out \"%s\" -inkey \"%s\" -inform PEM' % (infile, outfile, keyfile)
+            #do_openssl(None, "rsautl", "-encrypt", "-pkcs", "-certin", "-inkey", keyfile, "-out", outfilem, "-keyform", inform)
 
             if inpass:
                 passin = " -passin pass:%s" % inpass
@@ -1697,14 +1706,22 @@ def cipher_pubkey_encrypt():
             flash("error: invalid command!")
             return render_template( '/cipher-pubkey_encrypt.html')
 
-        result = run_cmd(cmd)
+        try:
+            run_cmd(cmd)
+        except:
+            errtype, errmsg = "ERROR", "ERROR: PLEASE CHECK FILE SIZE LESS THAN PUBLIC KEY SIZE"
+            return render_template( '/cipher-pubkey_encrypt.html', errtype=errtype, errmsg=errmsg)
 
-        outputtext = result
+        #outputtext = result
 
         if os.path.isfile(outfile):
             return send_file(outfile, as_attachment=True)
 
-        return render_template( '/cipher-pubkey_encrypt.html', outputtext=outputtext)
+        else:
+            errtype, errmsg = "ERROR", "ERROR: PLEASE CHECK FILE SIZE LESS THAN PUBLIC KEY SIZE"
+            return render_template( '/cipher-pubkey_encrypt.html', errtype=errtype, errmsg=errmsg)
+
+        return render_template( '/cipher-pubkey_encrypt.html')
 
    
     return render_template( '/cipher-pubkey_encrypt.html')
