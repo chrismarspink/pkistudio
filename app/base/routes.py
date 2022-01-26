@@ -762,7 +762,6 @@ def docker_main():
     flash('GET Docker-Main') 
     return render_template( '/docker-main.html', containerList=client.containers.list(), images=images, configs=configs)
 
-"""
 
 @blueprint.route('/k8s-main.html', methods=['GET', 'POST'])
 def k8s_main():
